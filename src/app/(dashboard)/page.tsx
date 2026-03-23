@@ -212,6 +212,7 @@ export default function WorkspacePage() {
             onViewChange={handleViewChange}
             selectedId={selectedId}
             onSelectItem={handleSelectItem}
+            onSettingsClick={() => setShowSettings(prev => !prev)}
           />
         }
         center={

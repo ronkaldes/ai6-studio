@@ -14,6 +14,7 @@ interface NavigatorProps {
   onViewChange: (view: ViewType) => void
   selectedId: string | null
   onSelectItem: (id: string, type: 'signal' | 'idea') => void
+  onSettingsClick?: () => void
 }
 
 const VIEWS: { key: ViewType; label: string; icon: string }[] = [
@@ -23,7 +24,7 @@ const VIEWS: { key: ViewType; label: string; icon: string }[] = [
   { key: 'archive', label: 'Archive', icon: '◇' },
 ]
 
-export function Navigator({ activeView, onViewChange, selectedId, onSelectItem }: NavigatorProps) {
+export function Navigator({ activeView, onViewChange, selectedId, onSelectItem, onSettingsClick }: NavigatorProps) {
   const { leftCollapsed } = useWorkspace()
   const [signals, setSignals] = useState<TrendSignal[]>([])
   const [ideas, setIdeas] = useState<Idea[]>([])
@@ -135,12 +136,25 @@ export function Navigator({ activeView, onViewChange, selectedId, onSelectItem }
         )}
       </div>
 
-      {!leftCollapsed && (
-        <div className="px-3 py-3 border-t panel-border flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-[var(--bg-elevated)]" />
-          <span className="text-[11px] text-[var(--text-secondary)]">Ron K.</span>
-        </div>
-      )}
+      <div className="px-3 py-3 border-t panel-border flex items-center gap-2">
+        <div className="w-6 h-6 rounded-full bg-[var(--bg-elevated)]" />
+        {!leftCollapsed && (
+          <span className="text-[11px] text-[var(--text-secondary)] flex-1">Ron K.</span>
+        )}
+        <button
+          onClick={onSettingsClick}
+          title="Settings"
+          className={cn(
+            'flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors',
+            leftCollapsed ? 'w-full' : 'w-5 h-5'
+          )}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </button>
+      </div>
     </div>
   )
 }
