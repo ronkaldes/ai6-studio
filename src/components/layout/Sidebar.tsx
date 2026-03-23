@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 const navigation = [
   { name: 'Trend Radar', href: '/trends', icon: TrendingUp },
   { name: 'Pipeline', href: '/pipeline', icon: Columns },
-  { name: 'Validate', href: '/validate', icon: CheckSquare },
+  { name: 'Validate', href: '/pipeline', icon: CheckSquare },
   { name: 'Board Room', href: '/board', icon: Users },
   { name: 'Settings', href: '/settings/context', icon: Settings },
 ];
