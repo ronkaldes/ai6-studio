@@ -21,7 +21,7 @@ export default function LoginPage() {
     });
 
     if (res.ok) {
-      router.push('/trends');
+      router.push('/');
     } else {
       setError('Wrong password');
       setLoading(false);
@@ -29,17 +29,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0A0F1C' }}>
+    <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm space-y-6 p-8 rounded-xl"
-        style={{ background: '#111827', border: '1px solid #1F2D45' }}
+        className="w-full max-w-sm space-y-6 p-8 rounded-xl bg-white border border-[#E5E5E5] shadow-sm"
       >
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold" style={{ color: '#F1F5F9', fontFamily: 'var(--font-sans)' }}>
+          <h1 className="text-2xl font-bold text-[#0A0A0A] tracking-tight" style={{ fontFamily: 'var(--font-sans)' }}>
             ai6 Labs Studio
           </h1>
-          <p style={{ color: '#94A3B8', fontSize: '14px' }}>Enter team password to continue</p>
+          <p className="text-[14px] text-[#666666]">Enter team password to continue</p>
         </div>
 
         <input
@@ -48,17 +47,12 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
           autoFocus
-          className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-colors"
-          style={{
-            background: '#1A2235',
-            border: '1px solid #2D3F5A',
-            color: '#F1F5F9',
-            fontFamily: 'var(--font-mono)',
-          }}
+          className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-colors bg-[#FAFAFA] border border-[#E5E5E5] text-[#0A0A0A] placeholder:text-[#999999] focus:border-[#0A0A0A] focus:ring-1 focus:ring-[#0A0A0A]"
+          style={{ fontFamily: 'var(--font-mono)' }}
         />
 
         {error && (
-          <p className="text-sm text-center" style={{ color: '#EF4444' }}>
+          <p className="text-sm text-center text-[#EF4444]">
             {error}
           </p>
         )}
@@ -66,8 +60,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading || !password}
-          className="w-full py-3 rounded-lg text-sm font-medium transition-opacity disabled:opacity-40"
-          style={{ background: '#3B82F6', color: '#FFFFFF' }}
+          className="w-full py-3 rounded-lg text-sm font-medium transition-opacity disabled:opacity-40 bg-[#0A0A0A] text-white hover:bg-[#1C1C1C] cursor-pointer"
         >
           {loading ? 'Entering...' : 'Enter Studio'}
         </button>
