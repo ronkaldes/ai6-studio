@@ -1122,6 +1122,8 @@ export function ScoringTab({ idea, onRefreshIdea }: ScoringTabProps) {
     }
   }
 
+  // NOTE: Score editing depends on Task 10 Step 3 (PATCH endpoint expansion).
+  // Until that step is done, edited scores won't persist. AI generation works immediately.
   const updateScore = async (dimension: string, newValue: number) => {
     // Update score locally then persist
     const updatedScores = scores.map((s: AgentScore) => {
@@ -2143,10 +2145,9 @@ Read `src/app/api/board/route.ts` and `src/app/api/ideas/[id]/route.ts` to under
 
 - [ ] **Step 2: Update board decision routing**
 
-Modify the POST handler in `src/app/api/board/route.ts` to map all four verdicts:
+Modify the POST handler in `src/app/api/board/route.ts` to map all four verdicts. Replace the existing stage assignment logic (line 20: `stage: decision === 'kill' ? 'graduated' : 'active_sprint'`) with:
 
 ```ts
-// Replace the existing stage assignment logic with:
 const stageMap: Record<string, string> = {
   go: 'active_sprint',
   conditional: 'validating',
@@ -2154,11 +2155,22 @@ const stageMap: Record<string, string> = {
   kill: 'graduated',
 }
 const newStage = stageMap[decision] || 'active_sprint'
-
-// Use newStage in the Idea update
 ```
 
-Also reset `daysInStage` to 0 on stage change.
+And update the `db.idea.update` call to use `newStage` and reset `daysInStage`:
+
+```ts
+await db.idea.update({
+  where: { id: idea_id },
+  data: {
+    stage: newStage,
+    daysInStage: 0,
+    boardDecision: decision,
+    boardRationale: learnings,
+    boardVotes: JSON.stringify(votes)
+  }
+});
+```
 
 - [ ] **Step 3: Expand ideas PATCH to support dvfScores**
 
@@ -2173,17 +2185,17 @@ data: {
 
 This enables the ScoringTab's inline score editing.
 
-- [ ] **Step 3: Verify build**
+- [ ] **Step 4: Verify build**
 
 ```bash
 cd /Users/ronkaldes/Projects-WLDS/ai6\ Labs\ Studio/ai6-studio && npm run build
 ```
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add src/app/api/board/route.ts
-git commit -m "fix: expand board route to support all four verdict outcomes"
+git add src/app/api/board/route.ts src/app/api/ideas/\[id\]/route.ts
+git commit -m "fix: expand board verdict routing and add dvfScores to ideas PATCH"
 ```
 
 ---
@@ -2195,6 +2207,8 @@ git commit -m "fix: expand board route to support all four verdict outcomes"
 - Modify: `src/app/(dashboard)/page.tsx`
 
 This is the integration task — replace the old sidebar+topbar+page layout with the new WorkspaceLayout. The single page.tsx becomes the workspace entry point.
+
+**Note:** The WorkspacePage fetches all data and could pass it to Navigator as props to avoid duplicate API calls. However, Navigator also fetches independently for encapsulation. During implementation, consider lifting data fetching to WorkspacePage only and passing signals/ideas as props to Navigator — this halves the initial API calls.
 
 - [ ] **Step 1: Read current dashboard layout and page**
 
