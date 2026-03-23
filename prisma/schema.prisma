@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model TrendSignal {
+  id              String   @id @default(cuid())
+  source          String
+  title           String
+  url             String?
+  velocitySignal  String?
+  opportunityScore Int     @default(0)   // 0-10
+  category        String?
+  aiSummary       String?
+  opportunityCard Json?
+  pipelineStatus  String   @default("new")
+  runId           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  idea            Idea?    @relation(fields: [ideaId], references: [id])
+  ideaId          String?
+}
+
+model Idea {
+  id              String   @id @default(cuid())
+  title           String
+  stage           String   @default("signal")
+  ventureScore    Int?
+  opportunityMemo Json?
+  dvfScores       Json?
+  assumptionMap   Json?
+  experiments     Json?
+  sourceSignalId  String?
+  assigneeId      String?
+  submittedBy     String?
+  daysInStage     Int      @default(0)
+  boardDecision   String?
+  boardRationale  String?
+  boardVotes      Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  signals         TrendSignal[]
+}
+
+model ProjectContext {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  version   Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BoardSession {
+  id          String   @id @default(cuid())
+  ideaId      String
+  sessionDate DateTime @default(now())
+  attendees   String[] 
+  decision    String
+  votes       Json
+  learnings   String?
+  createdAt   DateTime @default(now())
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      String   @default("member")
+  createdAt DateTime @default(now())
+}
