@@ -23,7 +23,10 @@ export async function GET(req: NextRequest) {
     skip: offset,
   });
 
-  return NextResponse.json({ signals, total: signals.length });
+  return NextResponse.json({ signals: signals.map(s => ({
+    ...s,
+    opportunityCard: s.opportunityCard ? JSON.parse(s.opportunityCard) : null
+  })), total: signals.length });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -49,5 +52,8 @@ export async function PATCH(req: NextRequest) {
     });
   }
 
-  return NextResponse.json({ signal: updated });
+  return NextResponse.json({ signal: {
+    ...updated,
+    opportunityCard: updated.opportunityCard ? JSON.parse(updated.opportunityCard) : null
+  } });
 }

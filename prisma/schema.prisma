@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model TrendSignal {
@@ -16,7 +16,7 @@ model TrendSignal {
   opportunityScore Int     @default(0)   // 0-10
   category        String?
   aiSummary       String?
-  opportunityCard Json?
+  opportunityCard String?
   pipelineStatus  String   @default("new")
   runId           String?
   createdAt       DateTime @default(now())
@@ -31,17 +31,17 @@ model Idea {
   title           String
   stage           String   @default("signal")
   ventureScore    Int?
-  opportunityMemo Json?
-  dvfScores       Json?
-  assumptionMap   Json?
-  experiments     Json?
+  opportunityMemo String?
+  dvfScores       String?
+  assumptionMap   String?
+  experiments     String?
   sourceSignalId  String?
   assigneeId      String?
   submittedBy     String?
   daysInStage     Int      @default(0)
   boardDecision   String?
   boardRationale  String?
-  boardVotes      Json?
+  boardVotes      String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
@@ -50,7 +50,7 @@ model Idea {
 
 model ProjectContext {
   id        String   @id @default(cuid())
-  content   String   @db.Text
+  content   String
   version   Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -60,9 +60,9 @@ model BoardSession {
   id          String   @id @default(cuid())
   ideaId      String
   sessionDate DateTime @default(now())
-  attendees   String[] 
+  attendees   String?
   decision    String
-  votes       Json
+  votes       String
   learnings   String?
   createdAt   DateTime @default(now())
 }

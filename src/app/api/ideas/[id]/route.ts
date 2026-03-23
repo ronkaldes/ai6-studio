@@ -12,5 +12,12 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
       ...(data.stage && { daysInStage: 0 }) 
     }
   });
-  return NextResponse.json({ idea });
+  return NextResponse.json({ idea: {
+    ...idea,
+    opportunityMemo: idea.opportunityMemo ? JSON.parse(idea.opportunityMemo) : null,
+    dvfScores: idea.dvfScores ? JSON.parse(idea.dvfScores) : null,
+    assumptionMap: idea.assumptionMap ? JSON.parse(idea.assumptionMap) : null,
+    experiments: idea.experiments ? JSON.parse(idea.experiments) : null,
+    boardVotes: idea.boardVotes ? JSON.parse(idea.boardVotes) : null
+  } });
 }

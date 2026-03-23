@@ -7,9 +7,9 @@ export async function POST(req: NextRequest) {
   const session = await db.boardSession.create({
     data: {
       ideaId: idea_id,
-      attendees: Array.from(new Set(votes.map((v: any) => v.member_name))) as string[],
+      attendees: JSON.stringify(Array.from(new Set(votes.map((v: any) => v.member_name)))),
       decision,
-      votes,
+      votes: JSON.stringify(votes),
       learnings: learnings || null,
     }
   });
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       stage: decision === 'kill' ? 'graduated' : 'active_sprint',
       boardDecision: decision,
       boardRationale: learnings,
-      boardVotes: votes
+      boardVotes: JSON.stringify(votes)
     }
   });
 

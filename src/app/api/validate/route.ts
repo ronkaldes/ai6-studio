@@ -42,7 +42,7 @@ Respond JSON: { "complete": boolean, "feedback": "1 sentence if incomplete",
         maxTokens: 2048,
       });
       const memo = parseJSON<OpportunityMemo>(raw);
-      await db.idea.update({ where: { id: idea_id }, data: { opportunityMemo: memo as any } });
+      await db.idea.update({ where: { id: idea_id }, data: { opportunityMemo: JSON.stringify(memo) } });
       return NextResponse.json(memo);
     }
 
@@ -55,7 +55,7 @@ Respond JSON: { "complete": boolean, "feedback": "1 sentence if incomplete",
             .catch((err) => ({ dimension: name, error: String(err) } as unknown as AgentScore)),
         ),
       );
-      await db.idea.update({ where: { id: idea_id }, data: { dvfScores: agentResults as any } });
+      await db.idea.update({ where: { id: idea_id }, data: { dvfScores: JSON.stringify(agentResults) } });
       return NextResponse.json({ agents: agentResults });
     }
 
@@ -72,17 +72,17 @@ Respond JSON: { "assumptions": [{ "id": "a1", "text": "...", "importance": 0.0-1
         userMessage: `Idea: ${idea.title}\nMemo: ${JSON.stringify(idea.opportunityMemo)}\n\nReturn JSON only.`,
       });
       const { assumptions } = parseJSON<{ assumptions: AssumptionItem[] }>(raw);
-      await db.idea.update({ where: { id: idea_id }, data: { assumptionMap: assumptions as any } });
+      await db.idea.update({ where: { id: idea_id }, data: { assumptionMap: JSON.stringify(assumptions) } });
       return NextResponse.json({ assumptions });
     }
 
     case 5: {
-      await db.idea.update({ where: { id: idea_id }, data: { experiments: data.experiments as any } });
+      await db.idea.update({ where: { id: idea_id }, data: { experiments: JSON.stringify(data.experiments) } });
       return NextResponse.json({ ok: true });
     }
 
     case 6: {
-      const scores = idea.dvfScores as AgentScore[] | null;
+      const scores = idea.dvfScores ? JSON.parse(idea.dvfScores) as AgentScore[] : null;
       const ventureScore = scores ? computeVentureScore(scores) : null;
       await db.idea.update({
         where: { id: idea_id },
