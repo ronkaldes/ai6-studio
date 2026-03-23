@@ -46,27 +46,27 @@
 }
 
 :root {
-  /* ai6 Labs Base Variables — monochrome palette */
-  --bg-base:       #0A0A0A;
-  --bg-surface:    #141414;
-  --bg-elevated:   #1C1C1C;
-  --bg-subtle:     #181818;
-  --border-dim:    #1E1E1E;
-  --border-base:   #262626;
-  --border-active: #EBEBEB;
-  --accent:        #EBEBEB;
-  --accent-dim:    #888888;
-  --accent-glow:   rgba(235,235,235,0.08);
-  --accent-highlight: #3B82F6; /* blue reserved for interactive highlights only */
+  /* ai6 Labs Base Variables — light monochrome palette */
+  --bg-base:       #FAFAFA;
+  --bg-surface:    #FFFFFF;
+  --bg-elevated:   #F0F0F0;
+  --bg-subtle:     #F5F5F5;
+  --border-dim:    #EBEBEB;
+  --border-base:   #E0E0E0;
+  --border-active: #0A0A0A;
+  --accent:        #0A0A0A;
+  --accent-dim:    #666666;
+  --accent-glow:   rgba(10,10,10,0.06);
+  --accent-highlight: #3B82F6;
 
   --score-kill:   #EF4444;
   --score-pivot:  #6366F1;
   --score-cond:   #F59E0B;
   --score-go:     #22C55E;
 
-  --text-primary:   #EDEDED;
-  --text-secondary: #888888;
-  --text-muted:     #555555;
+  --text-primary:   #0A0A0A;
+  --text-secondary: #666666;
+  --text-muted:     #999999;
 
   --source-github: #6E40C9;
   --source-reddit: #FF4500;
@@ -79,10 +79,10 @@
   --foreground: var(--text-primary);
   --card: var(--bg-surface);
   --card-foreground: var(--text-primary);
-  --popover: var(--bg-elevated);
+  --popover: var(--bg-surface);
   --popover-foreground: var(--text-primary);
   --primary: var(--accent);
-  --primary-foreground: #0A0A0A;
+  --primary-foreground: #FFFFFF;
   --secondary: var(--bg-subtle);
   --secondary-foreground: var(--text-secondary);
   --muted: var(--bg-subtle);
@@ -96,36 +96,7 @@
   --sidebar: var(--bg-surface);
   --sidebar-foreground: var(--text-primary);
   --sidebar-primary: var(--accent);
-  --sidebar-primary-foreground: #0A0A0A;
-  --sidebar-accent: var(--bg-subtle);
-  --sidebar-accent-foreground: var(--text-primary);
-  --sidebar-border: var(--border-base);
-  --sidebar-ring: var(--accent);
-}
-
-.dark {
-  /* Mapping identical because app is dark-mode only */
-  --background: var(--bg-base);
-  --foreground: var(--text-primary);
-  --card: var(--bg-surface);
-  --card-foreground: var(--text-primary);
-  --popover: var(--bg-elevated);
-  --popover-foreground: var(--text-primary);
-  --primary: var(--accent);
-  --primary-foreground: #0A0A0A;
-  --secondary: var(--bg-subtle);
-  --secondary-foreground: var(--text-secondary);
-  --muted: var(--bg-subtle);
-  --muted-foreground: var(--text-muted);
-  --destructive: var(--score-kill);
-  --border: var(--border-base);
-  --input: var(--border-dim);
-  --ring: var(--accent);
-
-  --sidebar: var(--bg-surface);
-  --sidebar-foreground: var(--text-primary);
-  --sidebar-primary: var(--accent);
-  --sidebar-primary-foreground: #0A0A0A;
+  --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: var(--bg-subtle);
   --sidebar-accent-foreground: var(--text-primary);
   --sidebar-border: var(--border-base);
@@ -153,11 +124,12 @@
   transition: background-color 150ms ease-out;
 }
 .hover-surface:hover {
-  background-color: var(--bg-elevated);
+  background-color: var(--bg-subtle);
 }
 
 .selected-indicator {
   border-left: 2px solid var(--accent);
+  background-color: var(--bg-subtle);
 }
 
 /* Skeleton shimmer animation */
