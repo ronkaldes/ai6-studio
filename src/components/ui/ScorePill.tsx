@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-export function ScorePill({ score, max = 10 }: { score: number, max?: number }) {
+export function ScorePill({ score, max = 10, className }: { score: number, max?: number, className?: string }) {
   let scoreColor = 'var(--score-kill)';
   if (max === 10) {
     if (score >= 7) scoreColor = 'var(--score-go)';
@@ -14,7 +14,7 @@ export function ScorePill({ score, max = 10 }: { score: number, max?: number }) 
 
   return (
     <span 
-      className={cn("px-2.5 py-0.5 rounded-full font-bold border-2 shrink-0 tabular-nums text-center text-[13px] bg-background")}
+      className={cn("px-2.5 py-0.5 rounded-full font-bold border-2 shrink-0 tabular-nums text-center text-[13px] bg-background", className)}
       style={{ borderColor: scoreColor, color: scoreColor }}
     >
       {score}{max === 10 ? '/10' : ''}
