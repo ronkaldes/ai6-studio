@@ -7,9 +7,8 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
   const idea = await db.idea.update({
     where: { id: params.id },
     data: {
-      ...(data.stage && { stage: data.stage }),
-      // Update daysInStage reset if stage changed
-      ...(data.stage && { daysInStage: 0 }) 
+      ...(data.stage && { stage: data.stage, daysInStage: 0 }),
+      ...(data.dvfScores && { dvfScores: JSON.stringify(data.dvfScores) }),
     }
   });
   return NextResponse.json({ idea: {

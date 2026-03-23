@@ -14,10 +14,19 @@ export async function POST(req: NextRequest) {
     }
   });
 
+  const stageMap: Record<string, string> = {
+    go: 'active_sprint',
+    conditional: 'validating',
+    pivot: 'refining',
+    kill: 'graduated',
+  }
+  const newStage = stageMap[decision] || 'active_sprint'
+
   await db.idea.update({
     where: { id: idea_id },
     data: {
-      stage: decision === 'kill' ? 'graduated' : 'active_sprint',
+      stage: newStage,
+      daysInStage: 0,
       boardDecision: decision,
       boardRationale: learnings,
       boardVotes: JSON.stringify(votes)

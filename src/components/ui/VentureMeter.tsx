@@ -31,11 +31,22 @@ export function VentureMeter({ agents }: { agents: AgentScore[] }) {
                      score >= 35 ? 'var(--score-pivot)' :
                      'var(--score-kill)';
 
+  const dimensions = [
+    { label: 'Desirability',  val: desirability,    weight: '20%' },
+    { label: 'Strategic Fit', val: strategicFit,    weight: '20%' },
+    { label: 'Market Size',   val: marketSize,       weight: '15%' },
+    { label: 'Feasibility',   val: techFeasibility,  weight: '15%' },
+    { label: 'Revenue Path',  val: revenuePath,      weight: '15%' },
+    { label: 'Distribution',  val: distribution,     weight: '10%' },
+    { label: 'Why Now',       val: whyNow,           weight: '5%'  },
+  ];
+
   return (
     <Card className="p-6 md:p-8 bg-surface border-border overflow-hidden relative shadow-md">
       <div className="absolute top-0 left-0 w-1.5 h-full" style={{ backgroundColor: scoreColor }} />
-      <div className="flex flex-col md:flex-row items-center justify-between gap-8 pl-4">
-        
+      <div className="flex flex-col md:flex-row items-start gap-8 pl-4">
+
+        {/* Score total */}
         <div className="flex flex-col items-center justify-center shrink-0 w-44">
           <span className="text-[10px] uppercase font-mono tracking-widest text-muted-foreground mb-2">Venture Score</span>
           <span className="text-7xl font-display font-bold tabular-nums tracking-tighter" style={{ color: scoreColor }}>
@@ -46,13 +57,11 @@ export function VentureMeter({ agents }: { agents: AgentScore[] }) {
           </span>
         </div>
 
-        <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-6 w-full border-t md:border-t-0 md:border-l border-border/50 pt-6 md:pt-0 md:pl-8">
-          <Metric label="Desirability" val={desirability} w="20%" color="bg-blue-500" />
-          <Metric label="Feasibility" val={techFeasibility} w="15%" color="bg-teal-500" />
-          <Metric label="Revenue Path" val={revenuePath} w="15%" color="bg-purple-500" />
-          <Metric label="Distribution" val={distribution} w="10%" color="bg-amber-500" />
-          <Metric label="Market Size" val={marketSize} w="15%" color="bg-blue-400" />
-          <Metric label="Why Now" val={whyNow} w="5%" color="bg-indigo-500" />
+        {/* Horizontal bar dimensions */}
+        <div className="flex-1 flex flex-col gap-3 w-full border-t md:border-t-0 md:border-l border-border/50 pt-6 md:pt-0 md:pl-8">
+          {dimensions.map(({ label, val, weight }) => (
+            <DimensionBar key={label} label={label} val={val} weight={weight} />
+          ))}
         </div>
 
       </div>
@@ -60,20 +69,19 @@ export function VentureMeter({ agents }: { agents: AgentScore[] }) {
   );
 }
 
-function Metric({ label, val, w, color }: { label: string, val: number, w: string, color: string }) {
+function DimensionBar({ label, val, weight }: { label: string; val: number; weight: string }) {
   const pct = (val / 5) * 100;
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex justify-between items-end">
-        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</span>
-        <span className="text-xs font-bold text-foreground tabular-nums">{val.toFixed(1)} <span className="opacity-40 text-[10px] font-normal tracking-wide ml-1">({w})</span></span>
-      </div>
-      <div className="h-[5px] w-full bg-muted/60 rounded-full overflow-hidden border border-border/20">
-        <div 
-          className={`h-full ${color} opacity-80 rounded-full transition-all duration-1000 ease-out`}
-          style={{ width: `${pct}%` }} 
+    <div className="flex items-center gap-3">
+      <span className="w-28 shrink-0 text-[10px] font-mono uppercase tracking-widest text-muted-foreground truncate">{label}</span>
+      <div className="flex-1 h-[5px] bg-muted/60 rounded-sm overflow-hidden border border-border/20">
+        <div
+          className="h-full bg-foreground/40 rounded-sm transition-all duration-700 ease-out"
+          style={{ width: `${pct}%` }}
         />
       </div>
+      <span className="w-10 shrink-0 text-right text-[11px] font-bold tabular-nums text-foreground">{val.toFixed(1)}</span>
+      <span className="w-7 shrink-0 text-right text-[9px] text-muted-foreground opacity-50">{weight}</span>
     </div>
   );
 }

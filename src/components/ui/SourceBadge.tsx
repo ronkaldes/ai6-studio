@@ -12,10 +12,10 @@ const sourceMeta: Record<string, { label: string; color: string }> = {
 export function SourceBadge({ source }: { source: string }) {
   const meta = sourceMeta[source] || sourceMeta.manual;
   return (
-    <Badge 
-      variant="outline" 
-      style={{ backgroundColor: `${meta.color}15`, borderColor: meta.color, color: meta.color }}
-      className="text-[10px] px-2 py-0 border leading-relaxed h-[22px] uppercase tracking-wider font-mono font-bold"
+    <Badge
+      variant="outline"
+      style={{ backgroundColor: `${meta.color}0d`, borderColor: `${meta.color}80`, color: meta.color }}
+      className="text-[9px] px-1.5 py-0 border leading-relaxed h-[18px] uppercase tracking-wider font-mono font-bold"
     >
       {meta.label}
     </Badge>
