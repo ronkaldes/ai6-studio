@@ -254,7 +254,7 @@ Ambient signals woven into existing elements — no dedicated pressure UI:
 | `AIChatThread` | Conversational AI interface for right panel |
 | `VotingCard` | Inline verdict voting widget for right panel |
 | `StageIndicator` | Subtle urgency badges (day counter with color shifts) |
-| `CommandPalette` | `Cmd+K` quick navigation: search ideas, switch views, trigger actions |
+| `CommandPalette` | `Cmd+K` quick navigation: search ideas by title, switch views (Inbox/Pipeline/Board/Archive), trigger scan, create new idea |
 | `SkeletonLoader` | Shimmer loading states for all data-fetching areas |
 
 ### Error Handling
@@ -285,6 +285,8 @@ No schema changes required. The existing Prisma models (`TrendSignal`, `Idea`, `
 - `BoardSession` maps to voting in the right panel
 - Pipeline stages are grouped in the UI, not restructured in the database
 
+**Clarification — Kill vs. Graduated in Archive:** The current `IdeaStage` type has no `killed` stage — killed ideas are set to `graduated`. In the Archive view, use the existing `boardDecision` field (which stores `kill`) to distinguish killed from graduated ideas in the UI. No schema change needed.
+
 ## API Impact
 
 No new API routes required. Existing routes support all interactions:
@@ -295,6 +297,10 @@ No new API routes required. Existing routes support all interactions:
 - `POST /api/board` — Voting
 - `POST /api/scan` — Signal scanning (triggered from Cmd+K or nav)
 - `GET/POST /api/context` — Settings
+
+**Route logic changes needed:** The board API route (`/api/board`) currently only maps decisions to two outcomes (`kill` → `graduated`, everything else → `active_sprint`). The route logic must be expanded to support all four verdict outcomes: Go → `active_sprint`, Conditional → `validating`, Pivot → `refining`, Kill → `graduated`.
+
+**Scoring tab — editability:** DVF scores are AI-generated via `/api/validate`. In the new Scoring tab, scores are displayed as inline cards. Users can manually override any AI-generated score by editing the value directly. The AI generation is the starting point, not the final word.
 
 ## Dependencies
 
