@@ -84,11 +84,12 @@ export function ContextPanel({ item, activeTab, onRefreshData }: ContextPanelPro
           Activity
         </div>
         <div className="text-[10px] text-[var(--text-muted)] space-y-1 leading-relaxed">
-          {idea?.boardDecision && <div>Board voted: {idea.boardDecision}</div>}
-          {idea?.ventureScore && <div>Venture score: {idea.ventureScore}/100</div>}
-          <div>
-            {isIdea ? `Day ${(item as Idea).daysInStage} in ${(item as Idea).stage}` : 'Signal discovered'}
-          </div>
+          {computeActivityEvents(item, isIdea).map((event, i) => (
+            <div key={i} className="flex items-start gap-1.5">
+              <span className="text-[var(--text-muted)] mt-0.5">·</span>
+              <span>{event}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -112,4 +113,24 @@ function getTabContext(tab: TabId): string {
     case 'experiments': return 'Suggest validation experiments and success metrics.'
     default: return ''
   }
+}
+
+function computeActivityEvents(item: Idea | TrendSignal | null, isIdea: boolean): string[] {
+  if (!item) return ['No item selected']
+  if (!isIdea) return ['Signal discovered']
+
+  const idea = item as Idea
+  const events: string[] = []
+
+  if (idea.boardDecision) {
+    const icon = { go: '✓', conditional: '~', pivot: '↻', kill: '✕' }[idea.boardDecision] || ''
+    events.push(`Board decision: ${icon} ${idea.boardDecision}`)
+  }
+  if (idea.ventureScore != null) events.push(`Venture score: ${idea.ventureScore}/100`)
+  if (idea.dvfScores && idea.dvfScores.length > 0) events.push('DVF scoring complete')
+  if (idea.opportunityMemo) events.push('Opportunity memo generated')
+  if (idea.sourceSignalId) events.push('Promoted from signal')
+  events.push(`Day ${idea.daysInStage} in ${idea.stage.replace('_', ' ')}`)
+
+  return events
 }
