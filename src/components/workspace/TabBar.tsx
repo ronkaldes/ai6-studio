@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils'
 
-export type TabId = 'overview' | 'scoring' | 'assumptions' | 'experiments' | 'board-brief'
+export type TabId = 'overview' | 'scoring' | 'assumptions' | 'experiments' | 'board-brief' | 'retrospective'
 
 interface Tab {
   id: TabId

@@ -139,6 +139,18 @@ export interface ExperimentCard {
   result?: string;
 }
 
+export interface SprintRetrospective {
+  id: string;
+  ideaId: string;
+  hypothesisValidated: 'yes' | 'partially' | 'no';
+  actualOutcome: string;
+  ventureScoreAccuracy: number; // 1-5
+  materializedKillRisks: string[];
+  keyLearning: string | null;
+  wouldBuildAgain: 'yes' | 'with_changes' | 'no';
+  createdAt: string;
+}
+
 // ── BOI Innovation Tools ────────────────────────────────────
 
 export interface FutureScenario {
@@ -312,6 +324,7 @@ export interface Idea {
   aiStrategyMatrix: AIStrategyMatrixResult | null;
   aiBlueprint: AIBlueprintResult | null;
   aiSimulation: AISimulationResult | null;
+  sprintRetrospective?: SprintRetrospective | null;
   createdAt: string;
   updatedAt: string;
 }

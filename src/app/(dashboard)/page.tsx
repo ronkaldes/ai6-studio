@@ -11,9 +11,12 @@ import { ScoringTab } from '@/components/workspace/tabs/ScoringTab'
 import { AssumptionsTab } from '@/components/workspace/tabs/AssumptionsTab'
 import { ExperimentsTab } from '@/components/workspace/tabs/ExperimentsTab'
 import { BoardBriefTab } from '@/components/workspace/tabs/BoardBriefTab'
+import { RetrospectiveTab } from '@/components/workspace/tabs/RetrospectiveTab'
 import { ContextEditor } from '@/components/settings/ContextEditor'
 import { IntegrationsPanel } from '@/components/settings/IntegrationsPanel'
 import { LearningsLibrary } from '@/components/workspace/LearningsLibrary'
+import { ImportUrlDialog } from '@/components/workspace/ImportUrlDialog'
+import { CardDiffView } from '@/components/workspace/CardDiffView'
 import { SkeletonLoader } from '@/components/workspace/SkeletonLoader'
 import { AnalyticsDashboard } from '@/components/workspace/AnalyticsDashboard'
 import { DuplicateCheckDialog } from '@/components/workspace/DuplicateCheckDialog'
@@ -30,7 +33,13 @@ export default function WorkspacePage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [selectedType, setSelectedType] = useState<'signal' | 'idea' | null>(null)
   const [activeTab, setActiveTab] = useState<TabId>('overview')
+  const [importUrlOpen, setImportUrlOpen] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  
+  // Card regeneration state
+  const [diffOriginal, setDiffOriginal] = useState<any>(null)
+  const [diffNew, setDiffNew] = useState<any>(null)
+  const [regenerating, setRegenerating] = useState(false)
 
   // Duplicate detection state
   const [dupCheckSignalId, setDupCheckSignalId] = useState<string | null>(null)
@@ -77,6 +86,8 @@ export default function WorkspacePage() {
   const handleSelectItem = (id: string, type: 'signal' | 'idea') => {
     setSelectedId(id)
     setSelectedType(type)
+    setDiffOriginal(null)
+    setDiffNew(null)
     setShowSettings(false)
     // Auto-select appropriate tab
     if (type === 'idea') {
@@ -165,6 +176,33 @@ export default function WorkspacePage() {
     }
   }
 
+  const handleRegenerateCard = async (signalId: string, currentCard: any) => {
+    setRegenerating(true)
+    setDiffOriginal(currentCard || {})
+    setDiffNew(null)
+    try {
+      const res = await fetch(`/api/signals/${signalId}/regenerate`, { method: 'POST' })
+      const data = await res.json()
+      if (data.newCard) {
+        setDiffNew(data.newCard)
+      }
+    } catch(e) { console.error('Regen failed', e) }
+    setRegenerating(false)
+  }
+
+  const handleApplyMergedCard = async (merged: any) => {
+    try {
+      await fetch(`/api/signals/${selectedId}/regenerate`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ card: merged })
+      })
+      setDiffOriginal(null)
+      setDiffNew(null)
+      refreshData()
+    } catch(e) { console.error(e) }
+  }
+
   // Render tab content
   const renderTabContent = () => {
     if (loadingItem) return <SkeletonLoader lines={6} />
@@ -174,9 +212,23 @@ export default function WorkspacePage() {
     // Signal detail (no tabs)
     if (selectedType === 'signal') {
       const sig = selectedItem as TrendSignal
+
+      if (diffOriginal && diffNew) {
+        return (
+          <CardDiffView 
+            originalCard={diffOriginal} 
+            newCard={diffNew} 
+            onApply={handleApplyMergedCard} 
+            onCancel={() => { setDiffOriginal(null); setDiffNew(null) }} 
+          />
+        )
+      }
+
       return (
         <div className="space-y-4 max-w-2xl">
-          <div className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)] mb-1">AI Summary</div>
+          <div className="flex justify-between items-center mb-1">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">AI Summary</div>
+          </div>
           <p className="text-[13px] leading-relaxed text-[var(--text-secondary)]">{sig.aiSummary}</p>
           {dupChecking && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-dim)]">
@@ -184,15 +236,34 @@ export default function WorkspacePage() {
               <span className="text-[11px] text-[var(--text-secondary)]">Checking for similar ideas...</span>
             </div>
           )}
-          {sig.opportunityCard && (
-            <div className="bg-[var(--bg-surface)] border border-[var(--border-dim)] rounded-md p-4 text-[12px] space-y-2">
-              {sig.opportunityCard.problem && <div><strong>Problem:</strong> {sig.opportunityCard.problem}</div>}
+          {sig.opportunityCard ? (
+            <div className="bg-[var(--bg-surface)] border border-[var(--border-dim)] rounded-md p-4 text-[12px] space-y-2 relative">
+              <div className="absolute top-4 right-4 text-xs">
+                <button 
+                  onClick={() => handleRegenerateCard(sig.id, sig.opportunityCard)}
+                  disabled={regenerating}
+                  className="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded transition-colors disabled:opacity-50"
+                >
+                  {regenerating ? 'Regenerating...' : 'Regenerate Card'}
+                </button>
+              </div>
+              {sig.opportunityCard.problem && <div className="pr-24"><strong>Problem:</strong> {sig.opportunityCard.problem}</div>}
               {sig.opportunityCard.why_now && <div><strong>Why Now:</strong> {sig.opportunityCard.why_now}</div>}
               {sig.opportunityCard.studio_angle && <div><strong>Studio Angle:</strong> {sig.opportunityCard.studio_angle}</div>}
               {sig.opportunityCard.sprint_hypothesis && <div><strong>Sprint Hypothesis:</strong> {sig.opportunityCard.sprint_hypothesis}</div>}
               {sig.opportunityCard.kill_risks && (
                 <div><strong className="text-[var(--score-kill)]">Kill Risks:</strong> {sig.opportunityCard.kill_risks.join(', ')}</div>
               )}
+            </div>
+          ) : (
+            <div className="mt-4 pt-4 border-t border-[var(--border-dim)]">
+              <button 
+                  onClick={() => handleRegenerateCard(sig.id, null)}
+                  disabled={regenerating}
+                  className="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded transition-colors text-xs font-semibold disabled:opacity-50"
+                >
+                  {regenerating ? 'Generating...' : 'Generate New Card'}
+              </button>
             </div>
           )}
         </div>
@@ -216,6 +287,8 @@ export default function WorkspacePage() {
         return <ExperimentsTab idea={idea} onRefreshIdea={refreshData} />
       case 'board-brief':
         return <BoardBriefTab idea={idea} />
+      case 'retrospective':
+        return <RetrospectiveTab idea={idea} onRefreshIdea={refreshData} />
       default:
         return null
     }
@@ -288,7 +361,17 @@ export default function WorkspacePage() {
         onSelectItem={handleSelectItem}
         onViewChange={handleViewChange}
         onTriggerScan={triggerScan}
+        onImportUrl={() => setImportUrlOpen(true)}
         scanning={scanState !== 'idle'}
+      />
+      
+      <ImportUrlDialog
+        open={importUrlOpen}
+        onClose={() => setImportUrlOpen(false)}
+        onSuccess={() => {
+          refreshData()
+          setActiveView('inbox')
+        }}
       />
       {dupCheckSignalId && dupMatches.length > 0 && (
         <DuplicateCheckDialog

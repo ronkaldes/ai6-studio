@@ -11,9 +11,10 @@ interface CommandPaletteProps {
   ideas: Idea[]
   signals: TrendSignal[]
   onSelectItem: (id: string, type: 'signal' | 'idea') => void
-  onViewChange: (view: ViewType) => void
+  onViewChange: (view: 'inbox' | 'pipeline' | 'board' | 'archive' | 'analytics' | 'learnings') => void
   onTriggerScan: () => void
-  scanning?: boolean
+  onImportUrl: () => void
+  scanning: boolean
 }
 
 interface CommandItem {
@@ -32,6 +33,7 @@ export function CommandPalette({
   onSelectItem,
   onViewChange,
   onTriggerScan,
+  onImportUrl,
   scanning = false,
 }: CommandPaletteProps) {
   const [query, setQuery] = useState('')
@@ -80,8 +82,11 @@ export function CommandPalette({
       { id: 'v-pipeline', label: 'Pipeline', description: 'View ideas in progress', action: () => { onViewChange('pipeline'); onClose() }, category: 'Views' },
       { id: 'v-board', label: 'Board', description: 'View pending decisions', action: () => { onViewChange('board'); onClose() }, category: 'Views' },
       { id: 'v-archive', label: 'Archive', description: 'View completed/killed ideas', action: () => { onViewChange('archive'); onClose() }, category: 'Views' },
+      { id: 'v-analytics', label: 'Analytics', description: 'View performance metrics', action: () => { onViewChange('analytics'); onClose() }, category: 'Views' },
+      { id: 'v-learnings', label: 'Learnings', description: 'View past decisions and insights', action: () => { onViewChange('learnings'); onClose() }, category: 'Views' },
       // Actions
       { id: 'a-scan', label: scanning ? 'Scanning...' : 'Trigger Scan', description: scanning ? 'Claude is scanning for signals…' : 'Scan for new signals', action: () => { if (!scanning) { onTriggerScan(); onClose() } }, category: 'Actions' },
+      { id: 'a-import', label: 'Import URL', description: 'Extract concept from link', action: () => { onImportUrl(); onClose() }, category: 'Actions' },
       // Ideas (from props, when no search query)
       ...ideas.map(i => ({
         id: `i-${i.id}`,

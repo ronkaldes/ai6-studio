@@ -6,6 +6,7 @@ import { TabBar, type TabId } from './TabBar'
 import { StageIndicator } from './StageIndicator'
 import { TeamVoteButton } from './TeamVoteButton'
 import { useWorkspace } from './WorkspaceLayout'
+import { RetrospectiveTab } from './tabs/RetrospectiveTab'
 import type { Idea, TrendSignal } from '@/types'
 
 interface DetailViewProps {
@@ -108,7 +109,7 @@ export function DetailView({
 }
 
 function getIdeaTabs(idea: Idea) {
-  return [
+  const tabs = [
     {
       id: 'overview' as TabId,
       label: 'Overview',
@@ -141,4 +142,14 @@ function getIdeaTabs(idea: Idea) {
         : 'empty' as const,
     },
   ]
+
+  if (idea.stage === 'active_sprint' || idea.stage === 'graduated') {
+    tabs.push({
+      id: 'retrospective' as TabId,
+      label: 'Retrospective',
+      completeness: idea.sprintRetrospective ? 'complete' as const : 'empty' as const,
+    })
+  }
+
+  return tabs
 }

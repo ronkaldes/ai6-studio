@@ -3,8 +3,9 @@ import { db } from '@/lib/db';
 import { serializeIdea } from '@/lib/serialize-idea';
 
 export async function GET(req: NextRequest) {
-  const ideas = await db.idea.findMany({
-    orderBy: { updatedAt: 'desc' }
+  const ideas = await (db as any).idea.findMany({
+    orderBy: { updatedAt: 'desc' },
+    include: { sprintRetrospective: true }
   });
   return NextResponse.json({ ideas: ideas.map(serializeIdea) });
 }
