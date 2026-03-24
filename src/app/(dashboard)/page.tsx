@@ -13,6 +13,7 @@ import { ExperimentsTab } from '@/components/workspace/tabs/ExperimentsTab'
 import { BoardBriefTab } from '@/components/workspace/tabs/BoardBriefTab'
 import { ContextEditor } from '@/components/settings/ContextEditor'
 import { IntegrationsPanel } from '@/components/settings/IntegrationsPanel'
+import { LearningsLibrary } from '@/components/workspace/LearningsLibrary'
 import { SkeletonLoader } from '@/components/workspace/SkeletonLoader'
 import { AnalyticsDashboard } from '@/components/workspace/AnalyticsDashboard'
 import { DuplicateCheckDialog } from '@/components/workspace/DuplicateCheckDialog'
@@ -253,11 +254,11 @@ export default function WorkspacePage() {
               </div>
             </div>
           ) : activeView === 'analytics' ? (
-            <div className="flex flex-col h-full">
-              <div className="flex-1 overflow-y-auto p-5">
-                <AnalyticsDashboard />
-              </div>
+            <div className="h-full overflow-y-auto p-5">
+              <AnalyticsDashboard />
             </div>
+          ) : activeView === 'learnings' ? (
+            <LearningsLibrary />
           ) : (
             <DetailView
               item={selectedItem}

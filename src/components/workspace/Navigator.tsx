@@ -9,10 +9,10 @@ import { CampaignSelector } from './CampaignSelector'
 import { NewCampaignDialog } from './NewCampaignDialog'
 import { useWorkspaceData } from './WorkspaceDataProvider'
 import type { Idea, TrendSignal, Campaign } from '@/types'
-import { Inbox, LayoutDashboard, Vote, Archive, Settings, BarChart3 } from 'lucide-react'
+import { Inbox, LayoutDashboard, Vote, Archive, Settings, BarChart3, BookOpen } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
-export type ViewType = 'inbox' | 'pipeline' | 'board' | 'archive' | 'analytics'
+export type ViewType = 'inbox' | 'pipeline' | 'board' | 'archive' | 'analytics' | 'learnings'
 
 interface NavigatorProps {
   activeView: ViewType
@@ -36,6 +36,7 @@ const VIEWS: { key: ViewType; label: string; Icon: LucideIcon }[] = [
   { key: 'pipeline', label: 'Pipeline', Icon: LayoutDashboard },
   { key: 'board', label: 'Board', Icon: Vote },
   { key: 'archive', label: 'Archive', Icon: Archive },
+  { key: 'learnings', label: 'Learnings', Icon: BookOpen },
   { key: 'analytics', label: 'Analytics', Icon: BarChart3 },
 ]
 

@@ -8,6 +8,7 @@ import { Loader2, Save } from 'lucide-react';
 
 export function ContextEditor() {
   const [content, setContent] = useState('');
+  const [stageGates, setStageGates] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
@@ -16,7 +17,14 @@ export function ContextEditor() {
     fetch('/api/context')
       .then(res => res.json())
       .then(data => {
-        setContent(data.content);
+        setContent(data.content || '');
+        setStageGates(data.stageGates || JSON.stringify({
+          signal_to_refining: { required: [] },
+          refining_to_validating: { required: ["opportunityMemo"] },
+          validating_to_decision_gate: { required: ["ventureScore>=55", "experimentComplete>=1"] },
+          decision_gate_to_active_sprint: { required: ["boardDecision:go|conditional"] },
+          active_sprint_to_graduated: { required: ["sprintEndDate"] }
+        }, null, 2));
         setLoading(false);
       });
   }, []);
@@ -28,7 +36,7 @@ export function ContextEditor() {
       await fetch('/api/context', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content })
+        body: JSON.stringify({ content, stageGates })
       });
       setMsg('Studio context updated successfully. AI will use this immediately.');
       setTimeout(() => setMsg(''), 5000);
@@ -76,6 +84,28 @@ export function ContextEditor() {
         />
         <div className="absolute top-2 right-4 text-[10px] text-muted-foreground font-mono uppercase tracking-widest pointer-events-none opacity-50">
           Markdown Supported
+        </div>
+      </div>
+
+      <div className="flex flex-col border-t border-border/50 pt-8 mt-4 gap-4">
+        <div>
+          <h2 className="text-xl font-bold font-display text-foreground flex items-center gap-2">
+            Stage Gates Configuration
+          </h2>
+          <p className="text-sm text-muted-foreground mt-2 max-w-2xl leading-relaxed">
+            Configure the required JSON rules for ideas to advance through the pipeline.
+          </p>
+        </div>
+        <div className="relative">
+          <Textarea 
+            value={stageGates}
+            onChange={e => setStageGates(e.target.value)}
+            className="min-h-[300px] font-mono text-sm leading-relaxed p-6 bg-background border-border/50 focus:border-primary resize-y shadow-inner whitespace-pre-wrap"
+            placeholder="Define stage gates config JSON..."
+          />
+          <div className="absolute top-2 right-4 text-[10px] text-muted-foreground font-mono uppercase tracking-widest pointer-events-none opacity-50">
+            JSON Required
+          </div>
         </div>
       </div>
     </Card>

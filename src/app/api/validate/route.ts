@@ -27,10 +27,45 @@ clear description of what they do today instead?
 Respond JSON: { "complete": boolean, "feedback": "1 sentence if incomplete",
 "refined_problem": "improved version if complete" }`, context);
 
-      const result = await runAgent<{ complete: boolean; feedback: string; refined_problem: string }>(
+      const result = (await runAgent(
         systemPrompt,
         data.problem_statement as string,
-      );
+      )) as { complete: boolean; feedback: string; refined_problem: string; warning?: string };
+      
+      // Check for similar past kills (Phase 3A)
+      if (result.complete) {
+        const pastLearnings = await (db as any).learning.findMany({
+          select: { ideaTitle: true, keySentence: true, createdAt: true },
+          take: 20,
+          orderBy: { createdAt: 'desc' }
+        });
+        
+        if (pastLearnings.length > 0) {
+          const problemText = data.problem_statement as string;
+          const matchPrompt = buildSystemPrompt(`
+You compare a new idea against past killed ideas.
+Past Kills:
+${pastLearnings.map((l: any) => `- Title: ${l.ideaTitle}\n  Date: ${l.createdAt}\n  Learning: ${l.keySentence}`).join('\n\n')}
+
+Is the new idea highly similar to any of these past kills?
+If yes, return JSON: { "match": true, "warning": "Similar idea '[Title]' was killed on [Date]: [keySentence]" }
+If no, return JSON: { "match": false }`, context);
+
+          try {
+            const matchRes = await runAgent<{ match: boolean; warning?: string }>(
+              matchPrompt,
+              `New Idea: ${idea.title}\nProblem: ${problemText}`
+            );
+            
+            if (matchRes.match && matchRes.warning) {
+              result.warning = matchRes.warning;
+            }
+          } catch(e) {
+            console.error('Failed to check past learnings', e);
+          }
+        }
+      }
+
       return NextResponse.json(result);
     }
 
