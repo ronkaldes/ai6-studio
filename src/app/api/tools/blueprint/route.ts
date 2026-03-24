@@ -1,7 +1,7 @@
 import { runSkill, parseJSON } from '@/lib/claude';
 import { getStudioContext, buildSystemPrompt } from '@/lib/context';
 import { db } from '@/lib/db';
-import { BOI_TOOL_PROMPTS } from '@/lib/skills/boi-tools';
+import { getBoiToolPrompt } from '@/lib/skills/boi-tools';
 import type { AIBlueprintResult } from '@/types';
 
 export const maxDuration = 120;
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     const context = await getStudioContext();
-    const systemPrompt = buildSystemPrompt(BOI_TOOL_PROMPTS.blueprint, context);
+    const systemPrompt = buildSystemPrompt(getBoiToolPrompt('blueprint'), context);
 
     const goalsStr = Array.isArray(body.goals) ? body.goals.join(', ') : body.goals;
     const challengesStr = Array.isArray(body.challenges) ? body.challenges.join(', ') : body.challenges;

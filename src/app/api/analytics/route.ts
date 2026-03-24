@@ -46,7 +46,41 @@ export async function GET() {
       rate: goDecisions.length > 0 ? Math.round((graduated.length / goDecisions.length) * 100) : 0,
     };
 
-    return NextResponse.json({ funnel, avgDaysPerStage, ventureScoreDistribution, conversionRate, sprintSuccessRate });
+    // Scan history: group signals by runId
+    const runMap = new Map<string, { date: string; scores: number[] }>();
+    for (const s of signals) {
+      if (!s.runId) continue;
+      if (!runMap.has(s.runId)) {
+        runMap.set(s.runId, { date: s.createdAt.toISOString(), scores: [] });
+      }
+      runMap.get(s.runId)!.scores.push(s.opportunityScore);
+    }
+    const scanHistory = Array.from(runMap.entries())
+      .map(([runId, { date, scores }]) => ({
+        runId,
+        date,
+        count: scores.length,
+        avgScore: Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10,
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // Kill rate by category: cross-reference killed ideas with source signal category
+    const killRateByCategory: Record<string, number> = {};
+    const killedIdeas = ideas.filter(i => i.boardDecision === 'kill');
+    for (const idea of killedIdeas) {
+      if (idea.sourceSignalId) {
+        const sig = signals.find(s => s.id === idea.sourceSignalId);
+        const cat = sig?.category || 'uncategorized';
+        killRateByCategory[cat] = (killRateByCategory[cat] || 0) + 1;
+      } else {
+        killRateByCategory['uncategorized'] = (killRateByCategory['uncategorized'] || 0) + 1;
+      }
+    }
+
+    return NextResponse.json({
+      funnel, avgDaysPerStage, ventureScoreDistribution, conversionRate, sprintSuccessRate,
+      scanHistory, killRateByCategory,
+    });
   } catch (error) {
     console.error('[analytics] Error:', error);
     return NextResponse.json({ error: 'Failed to compute analytics' }, { status: 500 });

@@ -2,27 +2,36 @@
 
 import { useState, useEffect } from 'react'
 
+function getUserName(): string {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('studio_user_name') || 'Anonymous'
+  }
+  return 'Anonymous'
+}
+
 export function TeamVoteButton({ ideaId }: { ideaId: string }) {
   const [net, setNet] = useState(0)
   const [myVote, setMyVote] = useState<number | null>(null)
 
+  const currentUser = getUserName()
+
   useEffect(() => {
     fetch(`/api/ideas/${ideaId}/votes`).then(r => r.json()).then(d => {
       setNet(d.net || 0)
-      const mine = (d.votes || []).find((v: { userName: string; vote: number }) => v.userName === 'Ron')
+      const mine = (d.votes || []).find((v: { userName: string; vote: number }) => v.userName === currentUser)
       setMyVote(mine?.vote || null)
     })
-  }, [ideaId])
+  }, [ideaId, currentUser])
 
   const vote = async (direction: 1 | -1) => {
     await fetch(`/api/ideas/${ideaId}/votes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ vote: direction, userName: 'Ron' }),
+      body: JSON.stringify({ vote: direction, userName: currentUser }),
     })
     const refresh = await fetch(`/api/ideas/${ideaId}/votes`).then(r => r.json())
     setNet(refresh.net || 0)
-    const mine = (refresh.votes || []).find((v: { userName: string; vote: number }) => v.userName === 'Ron')
+    const mine = (refresh.votes || []).find((v: { userName: string; vote: number }) => v.userName === currentUser)
     setMyVote(mine?.vote || null)
   }
 

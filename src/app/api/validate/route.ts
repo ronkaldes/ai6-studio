@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runAgent, runSkill, parseJSON } from '@/lib/claude';
 import { getStudioContext, buildSystemPrompt } from '@/lib/context';
-import { AGENT_PROMPTS } from '@/lib/skills/validator';
-import { OPPORTUNITY_MEMO_PROMPT } from '@/lib/skills/opportunity-memo';
+import { getAgentPrompt, getAgentNames } from '@/lib/skills/validator';
+import { getOpportunityMemoPrompt } from '@/lib/skills/opportunity-memo';
 import { db } from '@/lib/db';
 import type { AgentScore, OpportunityMemo, AssumptionItem } from '@/types';
 
@@ -35,7 +35,7 @@ Respond JSON: { "complete": boolean, "feedback": "1 sentence if incomplete",
     }
 
     case 2: {
-      const systemPrompt = buildSystemPrompt(OPPORTUNITY_MEMO_PROMPT, context);
+      const systemPrompt = buildSystemPrompt(getOpportunityMemoPrompt(), context);
       const raw = await runSkill({
         systemPrompt,
         userMessage: `Generate an Opportunity Memo for:\n\nTitle: ${idea.title}\nProblem: ${data.validated_problem}\n\nReturn JSON only.`,
@@ -49,8 +49,8 @@ Respond JSON: { "complete": boolean, "feedback": "1 sentence if incomplete",
     case 3: {
       const ideaDescription = `Title: ${idea.title}\nMemo: ${JSON.stringify(idea.opportunityMemo)}`;
       const agentResults = await Promise.all(
-        Object.entries(AGENT_PROMPTS).map(([name, promptFn]) =>
-          runAgent<AgentScore>(promptFn(context), ideaDescription)
+        getAgentNames().map((name) =>
+          runAgent<AgentScore>(buildSystemPrompt(getAgentPrompt(name), context), ideaDescription)
             .then((result) => ({ ...result, dimension: name }))
             .catch((err) => ({ dimension: name, error: String(err) } as unknown as AgentScore)),
         ),

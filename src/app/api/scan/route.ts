@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { runSkill, parseJSON } from '@/lib/claude';
 import { getStudioContext, buildSystemPrompt } from '@/lib/context';
 import { db } from '@/lib/db';
-import { TREND_SCAN_SYSTEM } from '@/lib/skills/trend-scanner';
+import { getTrendScanPrompt } from '@/lib/skills/trend-scanner';
 import type { TrendSignal } from '@/types';
 
 export const maxDuration = 120; // seconds — required for Vercel
@@ -12,7 +12,7 @@ export async function POST() {
 
   try {
     const context = await getStudioContext();
-    const systemPrompt = buildSystemPrompt(TREND_SCAN_SYSTEM, context);
+    const systemPrompt = buildSystemPrompt(getTrendScanPrompt(), context);
 
     const raw = await runSkill({
       systemPrompt,

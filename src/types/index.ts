@@ -350,12 +350,27 @@ export interface StudioAnalytics {
   ventureScoreDistribution: { range: string; count: number }[];
   conversionRate: { total_signals: number; promoted: number; rate: number };
   sprintSuccessRate: { total_go: number; graduated: number; rate: number };
+  scanHistory: { runId: string; date: string; count: number; avgScore: number }[];
+  killRateByCategory: Record<string, number>;
 }
 
 export interface FunnelStage {
   stage: string;
   count: number;
   label: string;
+}
+
+// ── Duplicate Detection ────────────────────────────────────
+
+export interface SimilarityMatch {
+  ideaId: string;
+  title: string;
+  reason: string;
+}
+
+export interface SimilarityCheckResult {
+  similar: boolean;
+  matches: SimilarityMatch[];
 }
 
 // ── Comments & Voting ───────────────────────────────────────

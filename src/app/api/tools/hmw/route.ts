@@ -1,7 +1,7 @@
 import { runSkill, parseJSON } from '@/lib/claude';
 import { getStudioContext, buildSystemPrompt } from '@/lib/context';
 import { db } from '@/lib/db';
-import { BOI_TOOL_PROMPTS } from '@/lib/skills/boi-tools';
+import { getBoiToolPrompt } from '@/lib/skills/boi-tools';
 import type { HMWStatement } from '@/types';
 
 export const maxDuration = 120;
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     const context = await getStudioContext();
-    const systemPrompt = buildSystemPrompt(BOI_TOOL_PROMPTS.hmw, context);
+    const systemPrompt = buildSystemPrompt(getBoiToolPrompt('hmw'), context);
 
     const raw = await runSkill({
       systemPrompt,

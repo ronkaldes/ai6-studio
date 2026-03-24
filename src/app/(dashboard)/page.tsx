@@ -13,9 +13,11 @@ import { ExperimentsTab } from '@/components/workspace/tabs/ExperimentsTab'
 import { BoardBriefTab } from '@/components/workspace/tabs/BoardBriefTab'
 import { ContextEditor } from '@/components/settings/ContextEditor'
 import { SkeletonLoader } from '@/components/workspace/SkeletonLoader'
+import { AnalyticsDashboard } from '@/components/workspace/AnalyticsDashboard'
+import { DuplicateCheckDialog } from '@/components/workspace/DuplicateCheckDialog'
 import { useWorkspaceData } from '@/components/workspace/WorkspaceDataProvider'
 import type { TabId } from '@/components/workspace/TabBar'
-import type { Idea, TrendSignal } from '@/types'
+import type { Idea, TrendSignal, SimilarityMatch } from '@/types'
 
 export default function WorkspacePage() {
   const { open: cmdOpen, setOpen: setCmdOpen, close: closeCmdPalette } = useCommandPalette()
@@ -27,6 +29,12 @@ export default function WorkspacePage() {
   const [selectedType, setSelectedType] = useState<'signal' | 'idea' | null>(null)
   const [activeTab, setActiveTab] = useState<TabId>('overview')
   const [showSettings, setShowSettings] = useState(false)
+
+  // Duplicate detection state
+  const [dupCheckSignalId, setDupCheckSignalId] = useState<string | null>(null)
+  const [dupMatches, setDupMatches] = useState<SimilarityMatch[]>([])
+  const [dupSignalTitle, setDupSignalTitle] = useState('')
+  const [dupChecking, setDupChecking] = useState(false)
 
   // Data state
   const [selectedItem, setSelectedItem] = useState<Idea | TrendSignal | null>(null)
@@ -54,14 +62,14 @@ export default function WorkspacePage() {
 
   useEffect(() => { fetchSelectedItem() }, [fetchSelectedItem])
 
-  // When switching to board view, auto-select board-brief tab
+  // When switching views
   const handleViewChange = (view: ViewType) => {
-    if (view === 'analytics') {
-      window.location.href = '/analytics'
-      return
-    }
     setActiveView(view)
     setShowSettings(false)
+    if (view === 'analytics') {
+      setSelectedId(null)
+      setSelectedItem(null)
+    }
   }
 
   const handleSelectItem = (id: string, type: 'signal' | 'idea') => {
@@ -84,7 +92,7 @@ export default function WorkspacePage() {
   }
 
   // Actions
-  const handlePromote = async (signalId: string) => {
+  const doPromote = async (signalId: string) => {
     try {
       await fetch('/api/signals', {
         method: 'PATCH',
@@ -92,10 +100,36 @@ export default function WorkspacePage() {
         body: JSON.stringify({ id: signalId, pipeline_status: 'promoted' }),
       })
       await refresh()
-      // Switch to pipeline view to see the new idea
       setActiveView('pipeline')
     } catch (e) {
       console.error('Promote failed:', e)
+    }
+  }
+
+  const handlePromote = async (signalId: string) => {
+    const sig = signals.find(s => s.id === signalId)
+    if (!sig) return
+
+    setDupChecking(true)
+    setDupSignalTitle(sig.title)
+    try {
+      const res = await fetch('/api/signals/check-similar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: sig.title, summary: sig.aiSummary || '' }),
+      })
+      const data = await res.json()
+      if (data.similar && data.matches?.length > 0) {
+        setDupCheckSignalId(signalId)
+        setDupMatches(data.matches)
+      } else {
+        await doPromote(signalId)
+      }
+    } catch {
+      // On error, proceed with promotion (don't block)
+      await doPromote(signalId)
+    } finally {
+      setDupChecking(false)
     }
   }
 
@@ -142,6 +176,12 @@ export default function WorkspacePage() {
         <div className="space-y-4 max-w-2xl">
           <div className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)] mb-1">AI Summary</div>
           <p className="text-[13px] leading-relaxed text-[var(--text-secondary)]">{sig.aiSummary}</p>
+          {dupChecking && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-dim)]">
+              <div className="w-2 h-2 rounded-full bg-[var(--accent-highlight)] animate-pulse" />
+              <span className="text-[11px] text-[var(--text-secondary)]">Checking for similar ideas...</span>
+            </div>
+          )}
           {sig.opportunityCard && (
             <div className="bg-[var(--bg-surface)] border border-[var(--border-dim)] rounded-md p-4 text-[12px] space-y-2">
               {sig.opportunityCard.problem && <div><strong>Problem:</strong> {sig.opportunityCard.problem}</div>}
@@ -207,6 +247,12 @@ export default function WorkspacePage() {
                 <ContextEditor />
               </div>
             </div>
+          ) : activeView === 'analytics' ? (
+            <div className="flex flex-col h-full">
+              <div className="flex-1 overflow-y-auto p-5">
+                <AnalyticsDashboard />
+              </div>
+            </div>
           ) : (
             <DetailView
               item={selectedItem}
@@ -238,6 +284,28 @@ export default function WorkspacePage() {
         onTriggerScan={triggerScan}
         scanning={scanState !== 'idle'}
       />
+      {dupCheckSignalId && dupMatches.length > 0 && (
+        <DuplicateCheckDialog
+          matches={dupMatches}
+          signalTitle={dupSignalTitle}
+          onPromoteAnyway={async () => {
+            const id = dupCheckSignalId
+            setDupCheckSignalId(null)
+            setDupMatches([])
+            await doPromote(id)
+          }}
+          onViewExisting={(ideaId) => {
+            setDupCheckSignalId(null)
+            setDupMatches([])
+            handleSelectItem(ideaId, 'idea')
+            setActiveView('pipeline')
+          }}
+          onCancel={() => {
+            setDupCheckSignalId(null)
+            setDupMatches([])
+          }}
+        />
+      )}
     </>
   )
 }

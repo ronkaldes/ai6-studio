@@ -7,6 +7,8 @@ import { ScorePill } from '@/components/ui/ScorePill'
 import { PersonaPanel } from '@/components/tools/PersonaPanel'
 import { HMWPanel } from '@/components/tools/HMWPanel'
 import { BusinessReinventionPanel } from '@/components/tools/BusinessReinventionPanel'
+import { CommentsThread } from '../CommentsThread'
+import { ChevronDown, ChevronRight, MessageSquare } from 'lucide-react'
 import type { Idea, TrendSignal } from '@/types'
 
 interface OverviewTabProps {
@@ -19,6 +21,7 @@ export function OverviewTab({ idea, sourceSignal, onRefreshIdea }: OverviewTabPr
   const [problemText, setProblemText] = useState(idea.opportunityMemo?.problem || '')
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState('')
+  const [commentsOpen, setCommentsOpen] = useState(false)
 
   const generateMemo = async () => {
     setGenerating(true)
@@ -119,6 +122,23 @@ export function OverviewTab({ idea, sourceSignal, onRefreshIdea }: OverviewTabPr
           <HMWPanel idea={idea} />
           <BusinessReinventionPanel idea={idea} />
         </div>
+      </section>
+
+      {/* Comments Section */}
+      <section className="border-t border-[var(--border-dim)] pt-4">
+        <button
+          onClick={() => setCommentsOpen(prev => !prev)}
+          className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-secondary)] cursor-pointer w-full"
+        >
+          {commentsOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          <MessageSquare size={12} />
+          <span>Comments</span>
+        </button>
+        {commentsOpen && (
+          <div className="mt-3 border border-[var(--border-dim)] rounded-md overflow-hidden" style={{ minHeight: 200 }}>
+            <CommentsThread ideaId={idea.id} />
+          </div>
+        )}
       </section>
     </div>
   )

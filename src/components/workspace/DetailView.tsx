@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { PanelRight, PanelRightClose } from 'lucide-react'
 import { TabBar, type TabId } from './TabBar'
 import { StageIndicator } from './StageIndicator'
+import { TeamVoteButton } from './TeamVoteButton'
 import { useWorkspace } from './WorkspaceLayout'
 import type { Idea, TrendSignal } from '@/types'
 
@@ -52,6 +53,7 @@ export function DetailView({
             <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-secondary)]">
               {(item as Idea).stage.replace('_', ' ')}
             </span>
+            <TeamVoteButton ideaId={item.id} />
             <StageIndicator daysInStage={(item as Idea).daysInStage} className="ml-auto" />
           </>
         )}
