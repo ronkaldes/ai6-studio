@@ -51,6 +51,7 @@ export interface TrendSignal {
   updatedAt: string;
   ideaId: string | null;
   campaignId: string | null;
+  topicCluster?: string | null;
 }
 
 export interface ScanResult {
@@ -378,6 +379,7 @@ export interface StudioAnalytics {
   sprintSuccessRate: { total_go: number; graduated: number; rate: number };
   scanHistory: { runId: string; date: string; count: number; avgScore: number }[];
   killRateByCategory: Record<string, number>;
+  trendingTopics: { name: string; count: number; avgScore: number; latestScore: number; isHeatingUp: boolean }[];
 }
 
 export interface FunnelStage {

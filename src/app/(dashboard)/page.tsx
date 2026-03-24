@@ -21,8 +21,10 @@ import { SkeletonLoader } from '@/components/workspace/SkeletonLoader'
 import { AnalyticsDashboard } from '@/components/workspace/AnalyticsDashboard'
 import { DuplicateCheckDialog } from '@/components/workspace/DuplicateCheckDialog'
 import { useWorkspaceData } from '@/components/workspace/WorkspaceDataProvider'
-import type { TabId } from '@/components/workspace/TabBar'
-import type { Idea, TrendSignal, SimilarityMatch } from '@/types'
+import { TabId } from '@/components/workspace/TabBar'
+import { ViewType as ViewId } from '@/components/workspace/Navigator'
+import { SignalTrendChart } from '@/components/workspace/SignalTrendChart';
+import type { Idea, TrendSignal, IdeaStage, OpportunityCard, SimilarityMatch } from '@/types'
 
 export default function WorkspacePage() {
   const { open: cmdOpen, setOpen: setCmdOpen, close: closeCmdPalette } = useCommandPalette()
@@ -265,6 +267,10 @@ export default function WorkspacePage() {
                   {regenerating ? 'Generating...' : 'Generate New Card'}
               </button>
             </div>
+          )}
+          
+          {sig.topicCluster && (
+            <SignalTrendChart currentSignal={sig} allSignals={signals} />
           )}
         </div>
       )

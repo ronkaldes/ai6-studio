@@ -3,6 +3,7 @@ import { runSkill, parseJSON } from '@/lib/claude';
 import { getStudioContext, buildSystemPrompt } from '@/lib/context';
 import { db } from '@/lib/db';
 import { getTrendScanPrompt } from '@/lib/skills/trend-scanner';
+import { clusterSignals } from '@/lib/clustering';
 import type { TrendSignal } from '@/types';
 
 export const maxDuration = 120; // seconds — required for Vercel
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     let focusInstruction = '';
     if (campaignId) {
-      const campaign = await db.campaign.findUnique({ where: { id: campaignId } });
+      const campaign = await (db as any).campaign.findUnique({ where: { id: campaignId } });
       if (campaign?.domainFocus) {
         focusInstruction = `\n\nCRITICAL DIRECTIVE:\nThis scan is operating under a specific campaign focus: "${campaign.domainFocus}".\nYou MUST prioritize and heavily index signals that match this domain. Ensure the bulk of your results reflect this focus context.`;
       }
@@ -51,6 +52,9 @@ Return JSON only — no prose, no markdown.`,
         campaignId: campaignId || null,
       })),
     });
+    
+    // Perform semantic topic clustering
+    await clusterSignals(runId);
 
     return NextResponse.json({
       run_id: runId,

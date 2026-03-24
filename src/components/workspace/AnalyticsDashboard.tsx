@@ -91,6 +91,36 @@ export function AnalyticsDashboard() {
           </ChartCard>
         )}
       </div>
+
+      {data.trendingTopics && data.trendingTopics.length > 0 && (
+        <ChartCard title="Trending Signal Topics">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {data.trendingTopics.map((topic, i) => (
+              <div key={i} className="p-3 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-dim)] flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-semibold text-[13px]">{topic.name}</span>
+                    {topic.isHeatingUp && (
+                      <span className="px-1.5 py-0.5 rounded bg-orange-50 text-orange-100 text-orange-600 text-[9px] font-bold border uppercase animate-pulse">Heating Up</span>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-[var(--text-muted)] line-clamp-1">{topic.count} signals in cluster</div>
+                </div>
+                <div className="mt-3 flex items-end justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-[9px] text-[var(--text-muted)] uppercase font-semibold">Latest Score</span>
+                    <span className="text-[16px] font-bold">{topic.latestScore}</span>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-[9px] text-[var(--text-muted)] uppercase font-semibold">Avg</span>
+                    <span className="text-[12px] font-medium text-[var(--text-secondary)]">{topic.avgScore}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </ChartCard>
+      )}
     </div>
   )
 }
