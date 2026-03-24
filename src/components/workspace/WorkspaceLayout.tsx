@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, createContext, useContext, type ReactNode } from 'react'
+import { Menu, PanelRight, MessageCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type Breakpoint = 'mobile' | 'tablet' | 'desktop'
@@ -36,6 +37,7 @@ export function WorkspaceLayout({ left, center, right }: WorkspaceLayoutProps) {
   const [rightCollapsed, setRightCollapsed] = useState(true)
   const [breakpoint, setBreakpoint] = useState<Breakpoint>('desktop')
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [mobileRightOpen, setMobileRightOpen] = useState(false)
 
   useEffect(() => {
     const update = () => {
@@ -54,6 +56,7 @@ export function WorkspaceLayout({ left, center, right }: WorkspaceLayoutProps) {
         setRightCollapsed(false)
       }
       setMobileNavOpen(false)
+      setMobileRightOpen(false)
     }
 
     update()
@@ -69,11 +72,30 @@ export function WorkspaceLayout({ left, center, right }: WorkspaceLayoutProps) {
     }
   }
 
-  const toggleRight = () => setRightCollapsed(prev => !prev)
+  const toggleRight = () => {
+    if (breakpoint === 'mobile') {
+      setMobileRightOpen(prev => !prev)
+    } else {
+      setRightCollapsed(prev => !prev)
+    }
+  }
 
   return (
     <WorkspaceContext.Provider value={{ leftCollapsed, rightCollapsed, toggleLeft, toggleRight, breakpoint }}>
       <div className="flex h-[100dvh] bg-[var(--bg-base)] text-[var(--text-primary)] relative">
+
+        {/* Mobile overlay right panel */}
+        {breakpoint === 'mobile' && mobileRightOpen && (
+          <>
+            <div
+              className="fixed inset-0 bg-black/20 z-40"
+              onClick={() => setMobileRightOpen(false)}
+            />
+            <div className="fixed inset-y-0 right-0 w-80 z-50 bg-[var(--bg-surface)] border-l border-[var(--border-dim)] shadow-lg overflow-y-auto">
+              {right}
+            </div>
+          </>
+        )}
 
         {/* Mobile overlay nav */}
         {breakpoint === 'mobile' && mobileNavOpen && (
@@ -105,8 +127,9 @@ export function WorkspaceLayout({ left, center, right }: WorkspaceLayoutProps) {
           {/* Mobile top bar */}
           {breakpoint === 'mobile' && (
             <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[var(--border-dim)] bg-[var(--bg-surface)]">
-              <button onClick={toggleLeft} className="text-[var(--text-secondary)] text-lg">☰</button>
-              <span className="text-[13px] font-semibold tracking-tight">ai6 Labs Studio</span>
+              <button onClick={toggleLeft} className="text-[var(--text-secondary)] cursor-pointer"><Menu size={18} /></button>
+              <span className="text-[13px] font-semibold tracking-tight flex-1">ai6 Labs Studio</span>
+              <button onClick={toggleRight} className="text-[var(--text-secondary)] cursor-pointer"><PanelRight size={18} /></button>
             </div>
           )}
           {center}
@@ -135,6 +158,17 @@ export function WorkspaceLayout({ left, center, right }: WorkspaceLayoutProps) {
               {right}
             </div>
           </>
+        )}
+
+        {/* Mobile FAB for right panel */}
+        {breakpoint === 'mobile' && !mobileRightOpen && !mobileNavOpen && (
+          <button
+            onClick={() => setMobileRightOpen(true)}
+            className="fixed bottom-5 right-5 z-30 w-12 h-12 rounded-full bg-[var(--accent)] text-white shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity"
+            aria-label="Open context panel"
+          >
+            <MessageCircle size={20} />
+          </button>
         )}
       </div>
     </WorkspaceContext.Provider>
