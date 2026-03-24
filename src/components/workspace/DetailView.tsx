@@ -77,10 +77,10 @@ export function DetailView({
           </div>
         )}
 
-        {isIdea && (item as Idea).stage === 'validating' && onSubmitToBoard && (
+        {isIdea && onSubmitToBoard && (item as Idea).dvfScores && (item as Idea).dvfScores!.length > 0 && (item as Idea).opportunityMemo && (item as Idea).stage !== 'decision_gate' && (item as Idea).stage !== 'graduated' && (
           <button
             onClick={() => onSubmitToBoard(item.id)}
-            className="ml-auto text-[12px] font-medium px-3 py-1.5 rounded-md bg-[var(--bg-elevated)] hover-surface cursor-pointer"
+            className="text-[12px] font-medium px-3 py-1.5 rounded-md bg-[var(--bg-elevated)] hover-surface cursor-pointer"
           >
             Submit to Board →
           </button>
