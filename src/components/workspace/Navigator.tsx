@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { useWorkspace } from './WorkspaceLayout'
 import { IdeaListItem } from './IdeaListItem'
 import { SkeletonLoader } from './SkeletonLoader'
 import type { Idea, TrendSignal } from '@/types'
+import { Inbox, LayoutDashboard, Vote, Archive, Settings, BarChart3 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-export type ViewType = 'inbox' | 'pipeline' | 'board' | 'archive'
+export type ViewType = 'inbox' | 'pipeline' | 'board' | 'archive' | 'analytics'
 
 interface NavigatorProps {
   activeView: ViewType
@@ -15,41 +17,25 @@ interface NavigatorProps {
   selectedId: string | null
   onSelectItem: (id: string, type: 'signal' | 'idea') => void
   onSettingsClick?: () => void
+  signals: TrendSignal[]
+  ideas: Idea[]
+  loading: boolean
+  scanState?: 'idle' | 'loading' | 'error'
+  scanMessage?: string | null
+  onRetryScan?: () => void
 }
 
-const VIEWS: { key: ViewType; label: string; icon: string }[] = [
-  { key: 'inbox', label: 'Inbox', icon: '◆' },
-  { key: 'pipeline', label: 'Pipeline', icon: '▦' },
-  { key: 'board', label: 'Board', icon: '◎' },
-  { key: 'archive', label: 'Archive', icon: '◇' },
+const VIEWS: { key: ViewType; label: string; Icon: LucideIcon }[] = [
+  { key: 'inbox', label: 'Inbox', Icon: Inbox },
+  { key: 'pipeline', label: 'Pipeline', Icon: LayoutDashboard },
+  { key: 'board', label: 'Board', Icon: Vote },
+  { key: 'archive', label: 'Archive', Icon: Archive },
+  { key: 'analytics', label: 'Analytics', Icon: BarChart3 },
 ]
 
-export function Navigator({ activeView, onViewChange, selectedId, onSelectItem, onSettingsClick }: NavigatorProps) {
+export function Navigator({ activeView, onViewChange, selectedId, onSelectItem, onSettingsClick, signals, ideas, loading, scanState, scanMessage, onRetryScan }: NavigatorProps) {
   const { leftCollapsed } = useWorkspace()
-  const [signals, setSignals] = useState<TrendSignal[]>([])
-  const [ideas, setIdeas] = useState<Idea[]>([])
   const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
-
-  const fetchData = useCallback(async () => {
-    setLoading(true)
-    try {
-      const [sigRes, ideaRes] = await Promise.all([
-        fetch('/api/signals'),
-        fetch('/api/ideas'),
-      ])
-      const sigData = await sigRes.json()
-      const ideaData = await ideaRes.json()
-      setSignals(sigData.signals || [])
-      setIdeas(ideaData.ideas || [])
-    } catch (e) {
-      console.error('Navigator fetch error:', e)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { fetchData() }, [fetchData])
 
   const filteredItems = getViewItems(activeView, signals, ideas, search)
 
@@ -73,11 +59,11 @@ export function Navigator({ activeView, onViewChange, selectedId, onSelectItem, 
             key={v.key}
             onClick={() => onViewChange(v.key)}
             className={cn(
-              'w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[12px] font-medium hover-surface',
+              'w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[12px] font-medium hover-surface cursor-pointer',
               activeView === v.key ? 'bg-[var(--bg-elevated)]' : 'text-[var(--text-secondary)]'
             )}
           >
-            <span className="text-[var(--text-muted)] w-4 text-center">{v.icon}</span>
+            <v.Icon size={14} className="text-[var(--text-muted)] flex-shrink-0" />
             {!leftCollapsed && (
               <>
                 <span>{v.label}</span>
@@ -106,6 +92,30 @@ export function Navigator({ activeView, onViewChange, selectedId, onSelectItem, 
             onChange={e => setSearch(e.target.value)}
             className="w-full bg-[var(--bg-base)] border border-[var(--border-dim)] rounded-md px-2.5 py-1.5 text-[11px] text-[var(--text-secondary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--border-active)]"
           />
+        </div>
+      )}
+
+      {scanState === 'loading' && scanMessage && (
+        <div className="mx-2 my-1 px-3 py-2 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-dim)]">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-[var(--accent-highlight)] animate-pulse" />
+            <span className="text-[11px] text-[var(--text-secondary)]">{scanMessage}</span>
+          </div>
+        </div>
+      )}
+      {scanState === 'error' && scanMessage && (
+        <div className="mx-2 my-1 px-3 py-2 rounded-md bg-red-50 border border-red-200">
+          <span className="text-[11px] text-red-600">{scanMessage}</span>
+          {onRetryScan && (
+            <button onClick={onRetryScan} className="text-[11px] underline text-red-600 ml-1">
+              Try again
+            </button>
+          )}
+        </div>
+      )}
+      {scanState === 'idle' && scanMessage && (
+        <div className="mx-2 my-1 px-3 py-2 rounded-md bg-green-50 border border-green-200">
+          <span className="text-[11px] text-green-700">{scanMessage}</span>
         </div>
       )}
 
@@ -145,14 +155,11 @@ export function Navigator({ activeView, onViewChange, selectedId, onSelectItem, 
           onClick={onSettingsClick}
           title="Settings"
           className={cn(
-            'flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors',
+            'flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer',
             leftCollapsed ? 'w-full' : 'w-5 h-5'
           )}
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-          </svg>
+          <Settings size={13} />
         </button>
       </div>
     </div>

@@ -66,7 +66,7 @@
 
   --text-primary:   #0A0A0A;
   --text-secondary: #666666;
-  --text-muted:     #999999;
+  --text-muted:     #6B6B6B; /* was #999999 — darkened to 5.1:1 on #FAFAFA (WCAG AA) */
 
   --source-github: #6E40C9;
   --source-reddit: #FF4500;
@@ -142,4 +142,14 @@
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: var(--bg-elevated);
+  }
+  .hover-surface {
+    transition: none;
+  }
 }

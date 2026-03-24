@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { PanelRight, PanelRightClose } from 'lucide-react'
 import { TabBar, type TabId } from './TabBar'
 import { StageIndicator } from './StageIndicator'
 import { useWorkspace } from './WorkspaceLayout'
@@ -60,7 +61,7 @@ export function DetailView({
             {onPromote && (
               <button
                 onClick={() => onPromote(item.id)}
-                className="text-[12px] font-medium px-3 py-1.5 rounded-md bg-[var(--bg-elevated)] hover-surface"
+                className="text-[12px] font-medium px-3 py-1.5 rounded-md bg-[var(--bg-elevated)] hover-surface cursor-pointer"
               >
                 Promote to Pipeline →
               </button>
@@ -68,7 +69,7 @@ export function DetailView({
             {onArchive && (
               <button
                 onClick={() => onArchive(item.id)}
-                className="text-[12px] text-[var(--text-muted)] px-3 py-1.5 rounded-md border border-[var(--border-dim)] hover-surface"
+                className="text-[12px] text-[var(--text-muted)] px-3 py-1.5 rounded-md border border-[var(--border-dim)] hover-surface cursor-pointer"
               >
                 Archive
               </button>
@@ -79,7 +80,7 @@ export function DetailView({
         {isIdea && (item as Idea).stage === 'validating' && onSubmitToBoard && (
           <button
             onClick={() => onSubmitToBoard(item.id)}
-            className="ml-auto text-[12px] font-medium px-3 py-1.5 rounded-md bg-[var(--bg-elevated)] hover-surface"
+            className="ml-auto text-[12px] font-medium px-3 py-1.5 rounded-md bg-[var(--bg-elevated)] hover-surface cursor-pointer"
           >
             Submit to Board →
           </button>
@@ -87,9 +88,9 @@ export function DetailView({
 
         <button
           onClick={toggleRight}
-          className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] text-[11px] ml-2"
+          className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] ml-2 cursor-pointer"
         >
-          {rightCollapsed ? '⊞' : '⊟'}
+          {rightCollapsed ? <PanelRight size={14} /> : <PanelRightClose size={14} />}
         </button>
       </div>
 

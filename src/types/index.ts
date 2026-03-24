@@ -341,3 +341,37 @@ export interface User {
   role: 'lead' | 'member' | 'board';
   createdAt: string;
 }
+
+// ── Analytics ───────────────────────────────────────────────
+
+export interface StudioAnalytics {
+  funnel: FunnelStage[];
+  avgDaysPerStage: Record<string, number>;
+  ventureScoreDistribution: { range: string; count: number }[];
+  conversionRate: { total_signals: number; promoted: number; rate: number };
+  sprintSuccessRate: { total_go: number; graduated: number; rate: number };
+}
+
+export interface FunnelStage {
+  stage: string;
+  count: number;
+  label: string;
+}
+
+// ── Comments & Voting ───────────────────────────────────────
+
+export interface Comment {
+  id: string;
+  ideaId: string;
+  authorName: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface IdeaVote {
+  id: string;
+  ideaId: string;
+  userName: string;
+  vote: number;
+  createdAt: string;
+}

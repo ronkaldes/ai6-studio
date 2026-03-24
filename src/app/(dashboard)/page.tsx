@@ -192,6 +192,9 @@ export default function WorkspacePage() {
             signals={signals}
             ideas={ideas}
             loading={loading}
+            scanState={scanState}
+            scanMessage={scanMessage}
+            onRetryScan={triggerScan}
           />
         }
         center={

@@ -83,6 +83,28 @@ model User {
   createdAt DateTime @default(now())
 }
 
+model Comment {
+  id         String   @id @default(cuid())
+  ideaId     String
+  authorName String   @default("Anonymous")
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([ideaId, createdAt])
+}
+
+model IdeaVote {
+  id        String   @id @default(cuid())
+  ideaId    String
+  userName  String   @default("Anonymous")
+  vote      Int      // 1 (up) or -1 (down)
+  createdAt DateTime @default(now())
+
+  @@unique([ideaId, userName])
+  @@index([ideaId])
+}
+
 model FutureScenarioRun {
   id          String   @id @default(cuid())
   year        Int

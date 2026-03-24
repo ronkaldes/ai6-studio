@@ -1,6 +1,8 @@
 'use client'
 
 import { ScorePill } from '@/components/ui/ScorePill'
+import { BlueprintPanel } from '@/components/tools/BlueprintPanel'
+import { SimulationPanel } from '@/components/tools/SimulationPanel'
 import type { Idea } from '@/types'
 
 interface BoardBriefTabProps {
@@ -91,6 +93,15 @@ export function BoardBriefTab({ idea }: BoardBriefTabProps) {
           </div>
         </section>
       )}
+
+      {/* Strategic Analysis Tools */}
+      <section>
+        <SectionLabel>Strategic Analysis</SectionLabel>
+        <div className="space-y-2">
+          <BlueprintPanel idea={idea} />
+          <SimulationPanel idea={idea} />
+        </div>
+      </section>
 
       {/* Not ready state */}
       {!memo && !idea.ventureScore && (

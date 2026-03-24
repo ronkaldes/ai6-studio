@@ -13,6 +13,7 @@ interface CommandPaletteProps {
   onSelectItem: (id: string, type: 'signal' | 'idea') => void
   onViewChange: (view: ViewType) => void
   onTriggerScan: () => void
+  scanning?: boolean
 }
 
 interface CommandItem {
@@ -31,6 +32,7 @@ export function CommandPalette({
   onSelectItem,
   onViewChange,
   onTriggerScan,
+  scanning = false,
 }: CommandPaletteProps) {
   const [query, setQuery] = useState('')
 
@@ -45,7 +47,7 @@ export function CommandPalette({
     { id: 'v-board', label: 'Board', description: 'View pending decisions', action: () => { onViewChange('board'); onClose() }, category: 'Views' },
     { id: 'v-archive', label: 'Archive', description: 'View completed/killed ideas', action: () => { onViewChange('archive'); onClose() }, category: 'Views' },
     // Actions
-    { id: 'a-scan', label: 'Trigger Scan', description: 'Scan for new signals', action: () => { onTriggerScan(); onClose() }, category: 'Actions' },
+    { id: 'a-scan', label: scanning ? 'Scanning...' : 'Trigger Scan', description: scanning ? 'Claude is scanning for signals…' : 'Scan for new signals', action: () => { if (!scanning) { onTriggerScan(); onClose() } }, category: 'Actions' },
     // Ideas
     ...ideas.map(i => ({
       id: `i-${i.id}`,
@@ -103,16 +105,20 @@ export function CommandPalette({
               <div className="px-4 py-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
                 {category}
               </div>
-              {categoryItems.slice(0, 8).map(item => (
-                <button
-                  key={item.id}
-                  onClick={item.action}
-                  className="w-full text-left px-4 py-2 hover-surface flex items-center justify-between"
-                >
-                  <span className="text-[12px] font-medium">{item.label}</span>
-                  <span className="text-[10px] text-[var(--text-muted)]">{item.description}</span>
-                </button>
-              ))}
+              {categoryItems.slice(0, 8).map(item => {
+                const isDisabled = item.id === 'a-scan' && scanning
+                return (
+                  <button
+                    key={item.id}
+                    onClick={item.action}
+                    disabled={isDisabled}
+                    className={`w-full text-left px-4 py-2 hover-surface flex items-center justify-between${isDisabled ? ' opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <span className="text-[12px] font-medium">{item.label}</span>
+                    <span className="text-[10px] text-[var(--text-muted)]">{item.description}</span>
+                  </button>
+                )
+              })}
             </div>
           ))}
           {filtered.length === 0 && (

@@ -4,6 +4,9 @@ import { useState } from 'react'
 import { SkeletonLoader } from '../SkeletonLoader'
 import { SourceBadge } from '@/components/ui/SourceBadge'
 import { ScorePill } from '@/components/ui/ScorePill'
+import { PersonaPanel } from '@/components/tools/PersonaPanel'
+import { HMWPanel } from '@/components/tools/HMWPanel'
+import { BusinessReinventionPanel } from '@/components/tools/BusinessReinventionPanel'
 import type { Idea, TrendSignal } from '@/types'
 
 interface OverviewTabProps {
@@ -106,6 +109,16 @@ export function OverviewTab({ idea, sourceSignal, onRefreshIdea }: OverviewTabPr
         {error && (
           <div className="mt-2 text-[12px] text-[var(--score-kill)]">{error}</div>
         )}
+      </section>
+
+      {/* BOI Innovation Tools */}
+      <section>
+        <SectionLabel>Innovation Tools</SectionLabel>
+        <div className="space-y-2">
+          <PersonaPanel idea={idea} />
+          <HMWPanel idea={idea} />
+          <BusinessReinventionPanel idea={idea} />
+        </div>
       </section>
     </div>
   )

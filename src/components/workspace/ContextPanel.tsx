@@ -2,6 +2,8 @@
 
 import { AIChatThread } from './AIChatThread'
 import { VotingCard } from './VotingCard'
+import { CommentsThread } from './CommentsThread'
+import { FutureScenarioPanel } from '@/components/tools/FutureScenarioPanel'
 import type { Idea, TrendSignal } from '@/types'
 import type { TabId } from './TabBar'
 
@@ -36,8 +38,15 @@ export function ContextPanel({ item, activeTab, onRefreshData }: ContextPanelPro
 
       {/* Panel Content */}
       <div className="flex-1 overflow-hidden flex flex-col">
-        {/* AI Chat — shown for Overview, Scoring, non-board tabs */}
-        {activeTab !== 'board-brief' && (
+        {/* Future Scenarios — shown for signals */}
+        {!isIdea && (
+          <div className="flex-1 overflow-y-auto p-3">
+            <FutureScenarioPanel />
+          </div>
+        )}
+
+        {/* AI Chat — shown for ideas on non-board tabs */}
+        {isIdea && activeTab !== 'board-brief' && (
           <div className="flex-1 overflow-hidden">
             <AIChatThread
               ideaId={item.id}
@@ -59,8 +68,18 @@ export function ContextPanel({ item, activeTab, onRefreshData }: ContextPanelPro
         )}
       </div>
 
+      {/* Comments — shown for ideas */}
+      {isIdea && (
+        <div className="border-t panel-border" style={{ height: '40%' }}>
+          <div className="px-4 py-2 border-b panel-border">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Comments</span>
+          </div>
+          <CommentsThread ideaId={item.id} />
+        </div>
+      )}
+
       {/* Activity Feed */}
-      <div className="px-3 py-3 border-t panel-border">
+      <div className="px-3 py-3 border-t panel-border shrink-0">
         <div className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)] mb-1.5">
           Activity
         </div>

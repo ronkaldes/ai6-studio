@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { SkeletonLoader } from '../SkeletonLoader'
+import { StrategyMatrixPanel } from '@/components/tools/StrategyMatrixPanel'
 import type { Idea, AgentScore } from '@/types'
 
 const DIMENSIONS = [
@@ -150,6 +151,11 @@ export function ScoringTab({ idea, onRefreshIdea }: ScoringTabProps) {
       })}
 
       {error && <div className="text-[12px] text-[var(--score-kill)]">{error}</div>}
+
+      {/* AI Strategy Matrix Tool */}
+      <div className="mt-4 pt-4 border-t border-[var(--border-dim)]">
+        <StrategyMatrixPanel idea={idea} />
+      </div>
     </div>
   )
 }
