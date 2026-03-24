@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { serializeIdea } from '@/lib/serialize-idea';
 
 export async function GET(req: NextRequest) {
   const ideas = await db.idea.findMany({
     orderBy: { updatedAt: 'desc' }
   });
-  return NextResponse.json({ ideas: ideas.map(idea => ({
-    ...idea,
-    opportunityMemo: idea.opportunityMemo ? JSON.parse(idea.opportunityMemo) : null,
-    dvfScores: idea.dvfScores ? JSON.parse(idea.dvfScores) : null,
-    assumptionMap: idea.assumptionMap ? JSON.parse(idea.assumptionMap) : null,
-    experiments: idea.experiments ? JSON.parse(idea.experiments) : null,
-    boardVotes: idea.boardVotes ? JSON.parse(idea.boardVotes) : null
-  })) });
+  return NextResponse.json({ ideas: ideas.map(serializeIdea) });
 }
 
 export async function POST(req: NextRequest) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { serializeIdea } from '@/lib/serialize-idea';
 
 export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -11,12 +12,5 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
       ...(data.dvfScores && { dvfScores: JSON.stringify(data.dvfScores) }),
     }
   });
-  return NextResponse.json({ idea: {
-    ...idea,
-    opportunityMemo: idea.opportunityMemo ? JSON.parse(idea.opportunityMemo) : null,
-    dvfScores: idea.dvfScores ? JSON.parse(idea.dvfScores) : null,
-    assumptionMap: idea.assumptionMap ? JSON.parse(idea.assumptionMap) : null,
-    experiments: idea.experiments ? JSON.parse(idea.experiments) : null,
-    boardVotes: idea.boardVotes ? JSON.parse(idea.boardVotes) : null
-  } });
+  return NextResponse.json({ idea: serializeIdea(idea) });
 }

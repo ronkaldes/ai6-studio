@@ -126,6 +126,154 @@ export interface ExperimentCard {
   result?: string;
 }
 
+// ── BOI Innovation Tools ────────────────────────────────────
+
+export interface FutureScenario {
+  title: string;
+  narrative: string;
+  opportunities: string[];
+  threats: string[];
+  likelihood: number;
+  timeframe: string;
+  key_drivers: string[];
+}
+
+export interface FutureScenarioRunResult {
+  year: number;
+  industry: string;
+  sector: string;
+  scenarios: FutureScenario[];
+}
+
+export interface UserPersona {
+  name: string;
+  age: number;
+  role: string;
+  background: string;
+  goals: string[];
+  pain_points: string[];
+  behaviors: string[];
+  motivations: string[];
+  tech_comfort: string;
+  key_quote: string;
+}
+
+export interface HMWStatement {
+  statement: string;
+  category: 'desirability' | 'feasibility' | 'viability' | 'wild_card';
+  innovation_potential: number;
+  rationale: string;
+}
+
+export interface AIOpportunity {
+  title: string;
+  description: string;
+  impact: 'low' | 'medium' | 'high';
+  effort: 'low' | 'medium' | 'high';
+  category: string;
+}
+
+export interface RoadmapPhase {
+  phase: string;
+  initiatives: string[];
+  expected_outcomes: string[];
+}
+
+export interface BusinessReinventionResult {
+  company: string;
+  industry: string;
+  current_state_analysis: string;
+  ai_opportunities: AIOpportunity[];
+  transformation_roadmap: RoadmapPhase[];
+  risk_assessment: string[];
+  recommended_first_step: string;
+}
+
+export interface StrategyRecommendation {
+  title: string;
+  description: string;
+  impact: number;
+  timeline: string;
+  category: string;
+}
+
+export interface PriorityItem {
+  action: string;
+  urgency: 'immediate' | 'short_term' | 'medium_term' | 'long_term';
+  impact: 'low' | 'medium' | 'high';
+}
+
+export interface AIStrategyMatrixResult {
+  product_assessment: string;
+  competitive_position: string;
+  strategic_quadrant: 'optimize' | 'differentiate' | 'transform' | 'disrupt';
+  recommendations: StrategyRecommendation[];
+  priority_matrix: PriorityItem[];
+  competitive_advantages: string[];
+  risks: string[];
+}
+
+export interface BlueprintPillar {
+  name: string;
+  description: string;
+  key_technologies: string[];
+  use_cases: string[];
+}
+
+export interface BlueprintPhase {
+  name: string;
+  objectives: string[];
+  deliverables: string[];
+  dependencies: string[];
+}
+
+export interface AIBlueprintResult {
+  industry: string;
+  current_adoption_level: string;
+  executive_summary: string;
+  transformation_pillars: BlueprintPillar[];
+  implementation_phases: BlueprintPhase[];
+  kpis: string[];
+  investment_estimate: string;
+  change_management_plan: string[];
+}
+
+export interface SimulationOutcome {
+  metric: string;
+  baseline: string;
+  projected: string;
+  confidence: number;
+}
+
+export interface RiskScenario {
+  scenario: string;
+  probability: 'low' | 'medium' | 'high';
+  impact: 'low' | 'medium' | 'high';
+  mitigation: string;
+}
+
+export interface SimulationTimeline {
+  quarter: string;
+  milestones: string[];
+  expected_roi: string;
+}
+
+export interface AISimulationResult {
+  scenario: string;
+  parameters: {
+    budget: string;
+    data_strategy: string;
+    business_goal: string;
+    integration_approach: string;
+  };
+  projected_outcomes: SimulationOutcome[];
+  risk_scenarios: RiskScenario[];
+  timeline: SimulationTimeline[];
+  success_probability: number;
+  key_assumptions: string[];
+  recommended_adjustments: string[];
+}
+
 export interface Idea {
   id: string;
   title: string;
@@ -143,6 +291,14 @@ export interface Idea {
   boardDecision: BoardVerdict | null;
   boardRationale: string | null;
   boardVotes: BoardVote[] | null;
+  // BOI tool outputs
+  userPersonas: UserPersona[] | null;
+  hmwStatements: HMWStatement[] | null;
+  futureScenarios: FutureScenario[] | null;
+  businessReinvention: BusinessReinventionResult | null;
+  aiStrategyMatrix: AIStrategyMatrixResult | null;
+  aiBlueprint: AIBlueprintResult | null;
+  aiSimulation: AISimulationResult | null;
   createdAt: string;
   updatedAt: string;
 }

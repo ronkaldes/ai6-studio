@@ -13,11 +13,13 @@ import { ExperimentsTab } from '@/components/workspace/tabs/ExperimentsTab'
 import { BoardBriefTab } from '@/components/workspace/tabs/BoardBriefTab'
 import { ContextEditor } from '@/components/settings/ContextEditor'
 import { SkeletonLoader } from '@/components/workspace/SkeletonLoader'
+import { useWorkspaceData } from '@/components/workspace/WorkspaceDataProvider'
 import type { TabId } from '@/components/workspace/TabBar'
 import type { Idea, TrendSignal } from '@/types'
 
 export default function WorkspacePage() {
   const { open: cmdOpen, setOpen: setCmdOpen, close: closeCmdPalette } = useCommandPalette()
+  const { signals, ideas, loading, scanState, scanMessage, refresh, triggerScan } = useWorkspaceData()
 
   // Navigation state
   const [activeView, setActiveView] = useState<ViewType>('inbox')
@@ -28,27 +30,7 @@ export default function WorkspacePage() {
 
   // Data state
   const [selectedItem, setSelectedItem] = useState<Idea | TrendSignal | null>(null)
-  const [allSignals, setAllSignals] = useState<TrendSignal[]>([])
-  const [allIdeas, setAllIdeas] = useState<Idea[]>([])
   const [loadingItem, setLoadingItem] = useState(false)
-
-  // Fetch all data for command palette and navigator
-  const fetchAllData = useCallback(async () => {
-    try {
-      const [sigRes, ideaRes] = await Promise.all([
-        fetch('/api/signals'),
-        fetch('/api/ideas'),
-      ])
-      const sigData = await sigRes.json()
-      const ideaData = await ideaRes.json()
-      setAllSignals(sigData.signals || [])
-      setAllIdeas(ideaData.ideas || [])
-    } catch (e) {
-      console.error('Failed to fetch data:', e)
-    }
-  }, [])
-
-  useEffect(() => { fetchAllData() }, [fetchAllData])
 
   // Fetch selected item detail
   const fetchSelectedItem = useCallback(async () => {
@@ -59,21 +41,25 @@ export default function WorkspacePage() {
     setLoadingItem(true)
     try {
       if (selectedType === 'signal') {
-        const sig = allSignals.find(s => s.id === selectedId)
+        const sig = signals.find(s => s.id === selectedId)
         setSelectedItem(sig || null)
       } else {
-        const idea = allIdeas.find(i => i.id === selectedId)
+        const idea = ideas.find(i => i.id === selectedId)
         setSelectedItem(idea || null)
       }
     } finally {
       setLoadingItem(false)
     }
-  }, [selectedId, selectedType, allSignals, allIdeas])
+  }, [selectedId, selectedType, signals, ideas])
 
   useEffect(() => { fetchSelectedItem() }, [fetchSelectedItem])
 
   // When switching to board view, auto-select board-brief tab
   const handleViewChange = (view: ViewType) => {
+    if (view === 'analytics') {
+      window.location.href = '/analytics'
+      return
+    }
     setActiveView(view)
     setShowSettings(false)
   }
@@ -84,7 +70,7 @@ export default function WorkspacePage() {
     setShowSettings(false)
     // Auto-select appropriate tab
     if (type === 'idea') {
-      const idea = allIdeas.find(i => i.id === id)
+      const idea = ideas.find(i => i.id === id)
       if (idea?.stage === 'decision_gate') {
         setActiveTab('board-brief')
       } else {
@@ -94,7 +80,7 @@ export default function WorkspacePage() {
   }
 
   const refreshData = () => {
-    fetchAllData()
+    refresh()
   }
 
   // Actions
@@ -105,7 +91,7 @@ export default function WorkspacePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: signalId, pipeline_status: 'promoted' }),
       })
-      await fetchAllData()
+      await refresh()
       // Switch to pipeline view to see the new idea
       setActiveView('pipeline')
     } catch (e) {
@@ -120,7 +106,7 @@ export default function WorkspacePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: signalId, pipeline_status: 'archived' }),
       })
-      await fetchAllData()
+      await refresh()
       setSelectedId(null)
       setSelectedItem(null)
     } catch (e) {
@@ -135,21 +121,11 @@ export default function WorkspacePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idea_id: ideaId, step: 6, data: { submitted_by: 'Ron' } }),
       })
-      await fetchAllData()
+      await refresh()
       setActiveView('board')
       setActiveTab('board-brief')
     } catch (e) {
       console.error('Submit to board failed:', e)
-    }
-  }
-
-  const handleTriggerScan = async () => {
-    try {
-      await fetch('/api/scan', { method: 'POST' })
-      await fetchAllData()
-      setActiveView('inbox')
-    } catch (e) {
-      console.error('Scan failed:', e)
     }
   }
 
@@ -184,7 +160,7 @@ export default function WorkspacePage() {
     // Idea tabs
     const idea = selectedItem as Idea
     const sourceSignal = idea.sourceSignalId
-      ? allSignals.find(s => s.id === idea.sourceSignalId) || null
+      ? signals.find(s => s.id === idea.sourceSignalId) || null
       : null
 
     switch (activeTab) {
@@ -213,6 +189,9 @@ export default function WorkspacePage() {
             selectedId={selectedId}
             onSelectItem={handleSelectItem}
             onSettingsClick={() => setShowSettings(prev => !prev)}
+            signals={signals}
+            ideas={ideas}
+            loading={loading}
           />
         }
         center={
@@ -249,11 +228,12 @@ export default function WorkspacePage() {
       <CommandPalette
         open={cmdOpen}
         onClose={closeCmdPalette}
-        ideas={allIdeas}
-        signals={allSignals}
+        ideas={ideas}
+        signals={signals}
         onSelectItem={handleSelectItem}
         onViewChange={handleViewChange}
-        onTriggerScan={handleTriggerScan}
+        onTriggerScan={triggerScan}
+        scanning={scanState !== 'idle'}
       />
     </>
   )
