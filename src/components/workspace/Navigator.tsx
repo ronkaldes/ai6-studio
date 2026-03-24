@@ -5,7 +5,10 @@ import { cn } from '@/lib/utils'
 import { useWorkspace } from './WorkspaceLayout'
 import { IdeaListItem } from './IdeaListItem'
 import { SkeletonLoader } from './SkeletonLoader'
-import type { Idea, TrendSignal } from '@/types'
+import { CampaignSelector } from './CampaignSelector'
+import { NewCampaignDialog } from './NewCampaignDialog'
+import { useWorkspaceData } from './WorkspaceDataProvider'
+import type { Idea, TrendSignal, Campaign } from '@/types'
 import { Inbox, LayoutDashboard, Vote, Archive, Settings, BarChart3 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -19,6 +22,9 @@ interface NavigatorProps {
   onSettingsClick?: () => void
   signals: TrendSignal[]
   ideas: Idea[]
+  campaigns: Campaign[]
+  activeCampaignId: string | null
+  setActiveCampaignId: (id: string | null) => void
   loading: boolean
   scanState?: 'idle' | 'loading' | 'error'
   scanMessage?: string | null
@@ -33,17 +39,20 @@ const VIEWS: { key: ViewType; label: string; Icon: LucideIcon }[] = [
   { key: 'analytics', label: 'Analytics', Icon: BarChart3 },
 ]
 
-export function Navigator({ activeView, onViewChange, selectedId, onSelectItem, onSettingsClick, signals, ideas, loading, scanState, scanMessage, onRetryScan }: NavigatorProps) {
+export function Navigator({ activeView, onViewChange, selectedId, onSelectItem, onSettingsClick, signals, ideas, campaigns, activeCampaignId, setActiveCampaignId, loading, scanState, scanMessage, onRetryScan }: NavigatorProps) {
   const { leftCollapsed } = useWorkspace()
+  const { refresh } = useWorkspaceData()
   const [search, setSearch] = useState('')
+  const [showNewCampaign, setShowNewCampaign] = useState(false)
 
-  const filteredItems = getViewItems(activeView, signals, ideas, search)
+  const filteredItems = getViewItems(activeView, signals, ideas, search, activeCampaignId)
 
   const inboxCount = signals.filter(s => s.pipelineStatus === 'new').length
   const boardCount = ideas.filter(i => i.stage === 'decision_gate').length
 
   return (
-    <div className="flex flex-col h-full bg-[var(--bg-surface)]">
+    <>
+      <div className="flex flex-col h-full bg-[var(--bg-surface)]">
       <div className="px-4 py-3 border-b panel-border">
         <div className="font-semibold text-[13px] tracking-tight">
           {leftCollapsed ? 'a6' : 'ai6 Labs'}
@@ -52,6 +61,14 @@ export function Navigator({ activeView, onViewChange, selectedId, onSelectItem, 
           <div className="text-[10px] text-[var(--text-muted)] mt-0.5">Studio</div>
         )}
       </div>
+
+      <CampaignSelector
+        campaigns={campaigns}
+        activeCampaignId={activeCampaignId}
+        onSelect={setActiveCampaignId}
+        onNew={() => setShowNewCampaign(true)}
+        leftCollapsed={leftCollapsed}
+      />
 
       <div className="px-2 py-2 space-y-0.5">
         {VIEWS.map(v => (
@@ -163,6 +180,16 @@ export function Navigator({ activeView, onViewChange, selectedId, onSelectItem, 
         </button>
       </div>
     </div>
+      {showNewCampaign && (
+        <NewCampaignDialog
+          onClose={() => setShowNewCampaign(false)}
+          onCreated={() => {
+            setShowNewCampaign(false)
+            refresh()
+          }}
+        />
+      )}
+    </>
   )
 }
 
@@ -175,19 +202,23 @@ function getViewItems(
   view: ViewType,
   signals: TrendSignal[],
   ideas: Idea[],
-  search: string
+  search: string,
+  activeCampaignId: string | null
 ): ItemGroup[] {
   const q = search.toLowerCase()
   const matchSearch = (title: string) => !q || title.toLowerCase().includes(q)
 
   switch (view) {
-    case 'inbox':
+    case 'inbox': {
+      let filtered = signals.filter(s => s.pipelineStatus === 'new' && matchSearch(s.title))
+      if (activeCampaignId) {
+        filtered = filtered.filter(s => s.campaignId === activeCampaignId)
+      }
       return [{
         label: '',
-        items: signals
-          .filter(s => s.pipelineStatus === 'new' && matchSearch(s.title))
-          .sort((a, b) => b.opportunityScore - a.opportunityScore)
+        items: filtered.sort((a, b) => b.opportunityScore - a.opportunityScore)
       }]
+    }
     case 'pipeline': {
       const stages = ['refining', 'validating', 'active_sprint'] as const
       return stages.map(stage => ({

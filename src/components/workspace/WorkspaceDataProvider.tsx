@@ -1,13 +1,16 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
-import type { Idea, TrendSignal } from '@/types'
+import type { Idea, TrendSignal, Campaign } from '@/types'
 
 type ScanState = 'idle' | 'loading' | 'error'
 
 interface WorkspaceData {
   signals: TrendSignal[]
   ideas: Idea[]
+  campaigns: Campaign[]
+  activeCampaignId: string | null
+  setActiveCampaignId: (id: string | null) => void
   loading: boolean
   error: string | null
   scanState: ScanState
@@ -19,6 +22,9 @@ interface WorkspaceData {
 const WorkspaceDataContext = createContext<WorkspaceData>({
   signals: [],
   ideas: [],
+  campaigns: [],
+  activeCampaignId: null,
+  setActiveCampaignId: () => {},
   loading: true,
   error: null,
   scanState: 'idle',
@@ -44,6 +50,8 @@ const SCAN_MESSAGES = [
 export function WorkspaceDataProvider({ children }: { children: ReactNode }) {
   const [signals, setSignals] = useState<TrendSignal[]>([])
   const [ideas, setIdeas] = useState<Idea[]>([])
+  const [campaigns, setCampaigns] = useState<Campaign[]>([])
+  const [activeCampaignId, setActiveCampaignId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [scanState, setScanState] = useState<ScanState>('idle')
@@ -51,15 +59,19 @@ export function WorkspaceDataProvider({ children }: { children: ReactNode }) {
 
   const fetchData = useCallback(async () => {
     try {
-      const [sigRes, ideaRes] = await Promise.all([
+      const [sigRes, ideaRes, campRes] = await Promise.all([
         fetch('/api/signals'),
         fetch('/api/ideas'),
+        fetch('/api/campaigns'),
       ])
-      if (!sigRes.ok || !ideaRes.ok) throw new Error('Failed to fetch data')
+      if (!sigRes.ok || !ideaRes.ok || !campRes.ok) throw new Error('Failed to fetch data')
       const sigData = await sigRes.json()
       const ideaData = await ideaRes.json()
+      const campData = await campRes.json()
+      
       setSignals(sigData.signals || [])
       setIdeas(ideaData.ideas || [])
+      setCampaigns(campData || [])
       setError(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to fetch data')
@@ -80,7 +92,8 @@ export function WorkspaceDataProvider({ children }: { children: ReactNode }) {
     }, 5000)
 
     try {
-      const res = await fetch('/api/scan', { method: 'POST' })
+      const url = activeCampaignId ? `/api/scan?campaignId=${activeCampaignId}` : '/api/scan'
+      const res = await fetch(url, { method: 'POST' })
       clearInterval(interval)
       if (!res.ok) {
         const errText = await res.text()
@@ -96,7 +109,7 @@ export function WorkspaceDataProvider({ children }: { children: ReactNode }) {
       setScanState('error')
       setScanMessage(e instanceof Error ? e.message : 'Scan failed')
     }
-  }, [fetchData])
+  }, [fetchData, activeCampaignId])
 
   useEffect(() => {
     setLoading(true)
@@ -105,7 +118,7 @@ export function WorkspaceDataProvider({ children }: { children: ReactNode }) {
 
   return (
     <WorkspaceDataContext.Provider value={{
-      signals, ideas, loading, error, scanState, scanMessage, refresh, triggerScan,
+      signals, ideas, campaigns, activeCampaignId, setActiveCampaignId, loading, error, scanState, scanMessage, refresh, triggerScan,
     }}>
       {children}
     </WorkspaceDataContext.Provider>

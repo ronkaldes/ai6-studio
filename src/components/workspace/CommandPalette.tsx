@@ -35,45 +35,103 @@ export function CommandPalette({
   scanning = false,
 }: CommandPaletteProps) {
   const [query, setQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<{
+    signals: any[], ideas: any[], learnings: any[]
+  }>({ signals: [], ideas: [], learnings: [] })
+  const [searching, setSearching] = useState(false)
+
+  // Debounce query
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), 300)
+    return () => clearTimeout(timer)
+  }, [query])
+
+  // Fetch search results
+  useEffect(() => {
+    if (!debouncedQuery) {
+      setSearchResults({ signals: [], ideas: [], learnings: [] })
+      setSearching(false) // Ensure searching is false when query is empty
+      return
+    }
+    setSearching(true)
+    fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}`)
+      .then(res => res.json())
+      .then(data => {
+        setSearchResults(data)
+        setSearching(false)
+      })
+      .catch((e) => {
+        console.error('Search error', e)
+        setSearching(false)
+      })
+  }, [debouncedQuery])
 
   useEffect(() => {
     if (open) setQuery('')
   }, [open])
 
-  const items: CommandItem[] = [
-    // Views
-    { id: 'v-inbox', label: 'Inbox', description: 'View new signals', action: () => { onViewChange('inbox'); onClose() }, category: 'Views' },
-    { id: 'v-pipeline', label: 'Pipeline', description: 'View ideas in progress', action: () => { onViewChange('pipeline'); onClose() }, category: 'Views' },
-    { id: 'v-board', label: 'Board', description: 'View pending decisions', action: () => { onViewChange('board'); onClose() }, category: 'Views' },
-    { id: 'v-archive', label: 'Archive', description: 'View completed/killed ideas', action: () => { onViewChange('archive'); onClose() }, category: 'Views' },
-    // Actions
-    { id: 'a-scan', label: scanning ? 'Scanning...' : 'Trigger Scan', description: scanning ? 'Claude is scanning for signals…' : 'Scan for new signals', action: () => { if (!scanning) { onTriggerScan(); onClose() } }, category: 'Actions' },
-    // Ideas
-    ...ideas.map(i => ({
-      id: `i-${i.id}`,
-      label: i.title,
-      description: `${i.stage} · Score ${i.ventureScore ?? '—'}`,
-      action: () => { onSelectItem(i.id, 'idea'); onClose() },
-      category: 'Ideas',
-    })),
-    // Signals
-    ...signals.filter(s => s.pipelineStatus === 'new').map(s => ({
-      id: `s-${s.id}`,
-      label: s.title,
-      description: `${s.source} · ${s.opportunityScore}`,
-      action: () => { onSelectItem(s.id, 'signal'); onClose() },
-      category: 'Signals',
-    })),
-  ]
+  let items: CommandItem[] = []
+  
+  if (!query) {
+    items = [
+      // Views
+      { id: 'v-inbox', label: 'Inbox', description: 'View new signals', action: () => { onViewChange('inbox'); onClose() }, category: 'Views' },
+      { id: 'v-pipeline', label: 'Pipeline', description: 'View ideas in progress', action: () => { onViewChange('pipeline'); onClose() }, category: 'Views' },
+      { id: 'v-board', label: 'Board', description: 'View pending decisions', action: () => { onViewChange('board'); onClose() }, category: 'Views' },
+      { id: 'v-archive', label: 'Archive', description: 'View completed/killed ideas', action: () => { onViewChange('archive'); onClose() }, category: 'Views' },
+      // Actions
+      { id: 'a-scan', label: scanning ? 'Scanning...' : 'Trigger Scan', description: scanning ? 'Claude is scanning for signals…' : 'Scan for new signals', action: () => { if (!scanning) { onTriggerScan(); onClose() } }, category: 'Actions' },
+      // Ideas (from props, when no search query)
+      ...ideas.map(i => ({
+        id: `i-${i.id}`,
+        label: i.title,
+        description: `${i.stage} · Score ${i.ventureScore ?? '—'}`,
+        action: () => { onSelectItem(i.id, 'idea'); onClose() },
+        category: 'Ideas',
+      })),
+      // Signals (from props, when no search query)
+      ...signals.filter(s => s.pipelineStatus === 'new').map(s => ({
+        id: `s-${s.id}`,
+        label: s.title,
+        description: `${s.source} · ${s.opportunityScore}`,
+        action: () => { onSelectItem(s.id, 'signal'); onClose() },
+        category: 'Signals',
+      })),
+    ]
+  } else {
+    items = [
+      // Actions (still available during search)
+      { id: 'a-scan', label: scanning ? 'Scanning...' : 'Trigger Scan', description: scanning ? 'Claude is scanning for signals…' : 'Scan for new signals', action: () => { if (!scanning) { onTriggerScan(); onClose() } }, category: 'Actions' },
+      
+      // Async Ideas
+      ...searchResults.ideas.map(i => ({
+        id: `i-${i.id}`,
+        label: i.title,
+        description: `Idea ${i.stage} · ${(i.summary || '').substring(0, 60)}...`,
+        action: () => { onSelectItem(i.id, 'idea'); onClose() },
+        category: 'Ideas',
+      })),
+      // Async Signals
+      ...searchResults.signals.map(s => ({
+        id: `s-${s.id}`,
+        label: s.title,
+        description: `Signal Score ${s.score} · ${(s.summary || '').substring(0, 60)}...`,
+        action: () => { onSelectItem(s.id, 'signal'); onClose() },
+        category: 'Signals',
+      })),
+      // Async Board Learnings
+      ...searchResults.learnings.map(l => ({
+        id: `l-${l.id}`,
+        label: `Learning: ${l.ideaTitle}`,
+        description: `${l.killReason ? 'Killed' : 'Insight'}: ${(l.keySentence || '').substring(0, 50)}...`,
+        action: () => { onSelectItem(l.ideaId, 'idea'); onClose() },
+        category: 'Board Decisions',
+      }))
+    ]
+  }
 
-  const filtered = query
-    ? items.filter(i =>
-        i.label.toLowerCase().includes(query.toLowerCase()) ||
-        i.description.toLowerCase().includes(query.toLowerCase())
-      )
-    : items
-
-  const grouped = filtered.reduce<Record<string, CommandItem[]>>((acc, item) => {
+  const grouped = items.reduce<Record<string, CommandItem[]>>((acc, item) => {
     (acc[item.category] ??= []).push(item)
     return acc
   }, {})
@@ -99,7 +157,12 @@ export function CommandPalette({
         </div>
 
         {/* Results */}
-        <div className="max-h-[300px] overflow-y-auto py-2">
+        <div className="max-h-[300px] overflow-y-auto py-2 relative">
+          {searching && (
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-[var(--border-dim)] overflow-hidden">
+              <div className="h-full bg-[var(--accent-highlight)] w-1/3 animate-[slide_1s_ease-in-out_infinite]" />
+            </div>
+          )}
           {Object.entries(grouped).map(([category, categoryItems]) => (
             <div key={category}>
               <div className="px-4 py-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
@@ -121,7 +184,7 @@ export function CommandPalette({
               })}
             </div>
           ))}
-          {filtered.length === 0 && (
+          {items.length === 0 && !searching && (
             <div className="px-4 py-6 text-center text-[12px] text-[var(--text-muted)]">
               No results found
             </div>

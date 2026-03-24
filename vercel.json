@@ -1,0 +1,9 @@
+{
+  "crons": [
+    {
+      "path": "/api/digest",
+      "schedule": "0 9 * * 1"
+    }
+  ],
+  "installCommand": "npm install && prisma generate"
+}

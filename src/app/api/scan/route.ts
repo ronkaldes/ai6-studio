@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { runSkill, parseJSON } from '@/lib/claude';
 import { getStudioContext, buildSystemPrompt } from '@/lib/context';
 import { db } from '@/lib/db';
@@ -7,12 +7,22 @@ import type { TrendSignal } from '@/types';
 
 export const maxDuration = 120; // seconds — required for Vercel
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   const start = Date.now();
+  const { searchParams } = new URL(req.url);
+  const campaignId = searchParams.get('campaignId');
 
   try {
+    let focusInstruction = '';
+    if (campaignId) {
+      const campaign = await db.campaign.findUnique({ where: { id: campaignId } });
+      if (campaign?.domainFocus) {
+        focusInstruction = `\n\nCRITICAL DIRECTIVE:\nThis scan is operating under a specific campaign focus: "${campaign.domainFocus}".\nYou MUST prioritize and heavily index signals that match this domain. Ensure the bulk of your results reflect this focus context.`;
+      }
+    }
+
     const context = await getStudioContext();
-    const systemPrompt = buildSystemPrompt(getTrendScanPrompt(), context);
+    const systemPrompt = buildSystemPrompt(getTrendScanPrompt() + focusInstruction, context);
 
     const raw = await runSkill({
       systemPrompt,
@@ -38,6 +48,7 @@ Return JSON only — no prose, no markdown.`,
         opportunityCard: s.opportunityCard ? JSON.stringify(s.opportunityCard) : undefined,
         pipelineStatus: 'new',
         runId,
+        campaignId: campaignId || null,
       })),
     });
 

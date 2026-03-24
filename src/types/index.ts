@@ -23,6 +23,18 @@ export interface OpportunityCard {
   kill_risks: [string, string, string]; // always exactly 3
 }
 
+export interface Campaign {
+  id: string;
+  name: string;
+  domainFocus: string | null;
+  minScore: number;
+  deadline: string | null;
+  status: 'active' | 'closed';
+  summary: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface TrendSignal {
   id: string;
   source: SignalSource;
@@ -38,6 +50,7 @@ export interface TrendSignal {
   createdAt: string;
   updatedAt: string;
   ideaId: string | null;
+  campaignId: string | null;
 }
 
 export interface ScanResult {

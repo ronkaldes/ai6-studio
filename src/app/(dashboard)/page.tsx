@@ -12,6 +12,7 @@ import { AssumptionsTab } from '@/components/workspace/tabs/AssumptionsTab'
 import { ExperimentsTab } from '@/components/workspace/tabs/ExperimentsTab'
 import { BoardBriefTab } from '@/components/workspace/tabs/BoardBriefTab'
 import { ContextEditor } from '@/components/settings/ContextEditor'
+import { IntegrationsPanel } from '@/components/settings/IntegrationsPanel'
 import { SkeletonLoader } from '@/components/workspace/SkeletonLoader'
 import { AnalyticsDashboard } from '@/components/workspace/AnalyticsDashboard'
 import { DuplicateCheckDialog } from '@/components/workspace/DuplicateCheckDialog'
@@ -21,7 +22,7 @@ import type { Idea, TrendSignal, SimilarityMatch } from '@/types'
 
 export default function WorkspacePage() {
   const { open: cmdOpen, setOpen: setCmdOpen, close: closeCmdPalette } = useCommandPalette()
-  const { signals, ideas, loading, scanState, scanMessage, refresh, triggerScan } = useWorkspaceData()
+  const { signals, ideas, campaigns, activeCampaignId, setActiveCampaignId, loading, scanState, scanMessage, refresh, triggerScan } = useWorkspaceData()
 
   // Navigation state
   const [activeView, setActiveView] = useState<ViewType>('inbox')
@@ -231,6 +232,9 @@ export default function WorkspacePage() {
             onSettingsClick={() => setShowSettings(prev => !prev)}
             signals={signals}
             ideas={ideas}
+            campaigns={campaigns}
+            activeCampaignId={activeCampaignId}
+            setActiveCampaignId={setActiveCampaignId}
             loading={loading}
             scanState={scanState}
             scanMessage={scanMessage}
@@ -245,6 +249,7 @@ export default function WorkspacePage() {
               </div>
               <div className="flex-1 overflow-y-auto p-5">
                 <ContextEditor />
+                <IntegrationsPanel />
               </div>
             </div>
           ) : activeView === 'analytics' ? (

@@ -24,6 +24,9 @@ model TrendSignal {
   
   idea            Idea?    @relation(fields: [ideaId], references: [id])
   ideaId          String?
+  
+  campaign        Campaign? @relation(fields: [campaignId], references: [id])
+  campaignId      String?
 }
 
 model Idea {
@@ -115,4 +118,18 @@ model FutureScenarioRun {
   createdAt   DateTime @default(now())
 
   @@index([createdAt])
+}
+
+model Campaign {
+  id              String   @id @default(cuid())
+  name            String
+  domainFocus     String?
+  minScore        Int      @default(6)
+  deadline        DateTime?
+  status          String   @default("active")
+  summary         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  signals         TrendSignal[]
 }
