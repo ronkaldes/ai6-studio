@@ -43,7 +43,28 @@ export function IdeaListItem({ item, isSelected, onClick }: IdeaListItemProps) {
         {score != null && (
           <ScorePill score={score} className="ml-auto" />
         )}
+        {!isSignal && (item as Idea).boardDecision && (
+          <span
+            className="text-[9px] font-semibold uppercase px-1.5 py-0.5 rounded ml-1.5"
+            style={{
+              color: verdictColor((item as Idea).boardDecision!),
+              backgroundColor: `${verdictColor((item as Idea).boardDecision!)}15`,
+            }}
+          >
+            {(item as Idea).boardDecision}
+          </span>
+        )}
       </div>
     </button>
   )
+}
+
+function verdictColor(verdict: string): string {
+  switch (verdict) {
+    case 'go': return '#22C55E'
+    case 'conditional': return '#F59E0B'
+    case 'pivot': return '#6366F1'
+    case 'kill': return '#EF4444'
+    default: return '#999999'
+  }
 }
