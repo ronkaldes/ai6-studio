@@ -8,65 +8,61 @@ datasource db {
 }
 
 model TrendSignal {
-  id              String   @id @default(cuid())
-  source          String
-  title           String
-  url             String?
-  velocitySignal  String?
-  opportunityScore Int     @default(0)   // 0-10
-  category        String?
-  aiSummary       String?
-  opportunityCard String?
-  pipelineStatus  String   @default("new")
-  runId           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  idea            Idea?    @relation(fields: [ideaId], references: [id])
-  ideaId          String?
-  
-  campaign        Campaign? @relation(fields: [campaignId], references: [id])
-  campaignId      String?
-  topicCluster    String?
+  id               String    @id @default(cuid())
+  source           String
+  title            String
+  url              String?
+  velocitySignal   String?
+  opportunityScore Int       @default(0)
+  category         String?
+  aiSummary        String?
+  opportunityCard  String?
+  pipelineStatus   String    @default("new")
+  runId            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  ideaId           String?
+  campaignId       String?
+  topicCluster     String?
+  campaign         Campaign? @relation(fields: [campaignId], references: [id])
+  idea             Idea?     @relation(fields: [ideaId], references: [id])
 }
 
 model Idea {
-  id              String   @id @default(cuid())
-  title           String
-  stage           String   @default("signal")
-  ventureScore    Int?
-  opportunityMemo String?
-  dvfScores       String?
-  assumptionMap   String?
-  experiments     String?
-  sourceSignalId  String?
-  assigneeId      String?
-  submittedBy     String?
-  daysInStage     Int      @default(0)
-  boardDecision   String?
-  boardRationale  String?
-  boardVotes      String?
-  // BOI Innovation Tool outputs
-  userPersonas         String?
-  hmwStatements        String?
-  futureScenarios      String?
-  businessReinvention  String?
-  aiStrategyMatrix     String?
-  aiBlueprint          String?
-  aiSimulation         String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  signals         TrendSignal[]
+  id                  String        @id @default(cuid())
+  title               String
+  stage               String        @default("signal")
+  ventureScore        Int?
+  opportunityMemo     String?
+  dvfScores           String?
+  assumptionMap       String?
+  experiments         String?
+  sourceSignalId      String?
+  assigneeId          String?
+  submittedBy         String?
+  daysInStage         Int           @default(0)
+  boardDecision       String?
+  boardRationale      String?
+  boardVotes          String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  aiBlueprint         String?
+  aiSimulation        String?
+  aiStrategyMatrix    String?
+  businessReinvention String?
+  futureScenarios     String?
+  hmwStatements       String?
+  userPersonas        String?
+  signals             TrendSignal[]
 }
 
 model ProjectContext {
-  id        String   @id @default(cuid())
-  content   String
-  version   Int      @default(1)
-  stageGates String? 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  content    String
+  version    Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  stageGates String?
 }
 
 model BoardSession {
@@ -100,17 +96,16 @@ model Learning {
 }
 
 model SprintRetrospective {
-  id                     String   @id @default(cuid())
-  ideaId                 String   @unique
-  hypothesisValidated    String
-  actualOutcome          String
-  ventureScoreAccuracy   Int
-  materializedKillRisks  String[]
-  keyLearning            String?
-  wouldBuildAgain        String
-  createdAt              DateTime @default(now())
+  id                    String   @id @default(cuid())
+  ideaId                String   @unique
+  hypothesisValidated   String
+  actualOutcome         String
+  ventureScoreAccuracy  Int
+  materializedKillRisks String[]
+  keyLearning           String?
+  wouldBuildAgain       String
+  createdAt             DateTime @default(now())
 }
-
 
 model Comment {
   id         String   @id @default(cuid())
@@ -127,7 +122,7 @@ model IdeaVote {
   id        String   @id @default(cuid())
   ideaId    String
   userName  String   @default("Anonymous")
-  vote      Int      // 1 (up) or -1 (down)
+  vote      Int
   createdAt DateTime @default(now())
 
   @@unique([ideaId, userName])
@@ -135,27 +130,26 @@ model IdeaVote {
 }
 
 model FutureScenarioRun {
-  id          String   @id @default(cuid())
-  year        Int
-  industry    String
-  sector      String
-  scenarios   String
-  ideaId      String?
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  year      Int
+  industry  String
+  sector    String
+  scenarios String
+  ideaId    String?
+  createdAt DateTime @default(now())
 
   @@index([createdAt])
 }
 
 model Campaign {
-  id              String   @id @default(cuid())
-  name            String
-  domainFocus     String?
-  minScore        Int      @default(6)
-  deadline        DateTime?
-  status          String   @default("active")
-  summary         String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  signals         TrendSignal[]
+  id          String        @id @default(cuid())
+  name        String
+  domainFocus String?
+  minScore    Int           @default(6)
+  deadline    DateTime?
+  status      String        @default("active")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  summary     String?
+  signals     TrendSignal[]
 }
